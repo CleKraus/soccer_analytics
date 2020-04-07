@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import os
 import pandas as pd
 import numpy as np
+import ruamel.yaml
 
 from components.teams import Teams
 from components.matches import Matches
@@ -13,18 +15,21 @@ class Analyzer:
 
     def __init__(self):
 
-        PATH = "C://Clemens//Personal//Soccer//Event_Project//data//clean_data"
-        fname_teams = "teams.parquet"
-        fname_players = "players.parquet"
-        fname_matches = "matches_germany.parquet"
-        fname_events = "events_germany.parquet"
-        fname_formations = "formations_germany.parquet"
+        with open("config.yml", "r", encoding="utf-8") as f:
+            config = ruamel.yaml.YAML().load(f)
 
-        self.teams = Teams(os.path.join(PATH, fname_teams))
-        self.matches = Matches(os.path.join(PATH, fname_matches))
-        self.players = Players(os.path.join(PATH, fname_players))
-        self.events = Events(os.path.join(PATH, fname_events))
-        self.formations = Formations(os.path.join(PATH, fname_formations))
+        path = config["data"]["path"]
+        fname_teams = config["data"]["team_data"]
+        fname_players = config["data"]["player_data"]
+        fname_matches = config["data"]["match_data"]
+        fname_events = config["data"]["event_data"]
+        fname_formations = config["data"]["formation_data"]
+
+        self.teams = Teams(os.path.join(path, fname_teams))
+        self.matches = Matches(os.path.join(path, fname_matches))
+        self.players = Players(os.path.join(path, fname_players))
+        self.events = Events(os.path.join(path, fname_events))
+        self.formations = Formations(os.path.join(path, fname_formations))
 
         self.positions = None
 
@@ -42,12 +47,6 @@ class Analyzer:
         df_lineup = self.formations.get_formation(match_id, team_id, type="lineup")
         df_position = pd.merge(df_position, df_lineup, on=["playerId"])
         df_position = pd.merge(df_position, self.players.players_info(cols=["playerId", "shortName"]))
-
-        # TODO: Put into drawing function, not in here
-        if side == "away":
-            df_position["centerX"] = 100 - df_position["centerX"]
-        else:
-            df_position["centerY"] = 100 - df_position["centerY"]
 
         return df_position
 
@@ -73,12 +72,12 @@ class Analyzer:
 
         df_pass = self.get_pass_count(match_id, team_id, show_top_k)
 
-        hallo = pd.merge(df_pass,
-                         df_position.rename(columns={"playerId": "player1", "centerX": "centerX1", "centerY": "centerY1"}),
-                         on="player1")
-        hallo = pd.merge(hallo,
-                         df_position.rename(columns={"playerId": "player2", "centerX": "centerX2", "centerY": "centerY2"}),
-                         on="player2")
-        hallo["sharePasses"] = hallo["totalPasses"] / sum(hallo["totalPasses"])
+        df_pass_share = pd.merge(df_pass,
+                                 df_position.rename(columns={"playerId": "player1", "centerX": "centerX1", "centerY": "centerY1"}),
+                                 on="player1")
+        df_pass_share = pd.merge(df_pass_share,
+                                 df_position.rename(columns={"playerId": "player2", "centerX": "centerX2", "centerY": "centerY2"}),
+                                 on="player2")
+        df_pass_share["sharePasses"] = df_pass_share["totalPasses"] / sum(df_pass_share["totalPasses"])
 
-        return hallo
+        return df_pass_share
