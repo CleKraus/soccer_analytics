@@ -33,7 +33,7 @@ def create_navigation_bar():
                                     ), height="40px"
                                 )
                             ),
-                            dbc.Col(dbc.NavbarBrand("Bundesliga Analysis", className="ml-2")),
+                            dbc.Col(dbc.NavbarBrand("Soccer Analysis", className="ml-2")),
                         ],
                         align="left",
                         no_gutters=True,
