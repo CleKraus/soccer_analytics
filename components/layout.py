@@ -49,17 +49,8 @@ def create_navigation_bar():
 
 
 def create_empty_field(below=False):
-    """
-    Function draws an empty soccer field using plotly
-    :param below:
-    :return:
-    """
-
-    # radius of the middle circle
     rad_circle = 9.15
-    # length of the field (in m)
     len_field = 105
-    # width of the field (in m)
     wid_field = 68
 
     circle_y = (wid_field / 2 - rad_circle) * 100 / wid_field
@@ -79,51 +70,124 @@ def create_empty_field(below=False):
 
     # Create traces
     fig = go.Figure(layout=layout)
-    fig.add_trace(go.Scatter(
-        showlegend=False,
-        x=[50, 50],
-        y=[100, 0],
-        mode='lines',
-        line=dict(color='white', width=2)))
 
-    fig.add_trace(go.Scatter(
-        showlegend=False,
-        x=[0, (16 / len_field) * 100, (16 / len_field) * 100, 0],
-        y=[100 - y_box, 100 - y_box, y_box, y_box],
-        mode='lines',
-        line=dict(color='white', width=2),
+    fig.add_shape(
+        # Line Vertical
+        dict(
+            layer="below",
+            type="line",
+            x0=50,
+            y0=0,
+            x1=50,
+            y1=100,
+            line=dict(
+                color="white",
+                width=2
+            )))
 
-    ))
+    # draw left box
+    x_vals = [0, (16 / len_field) * 100, (16 / len_field) * 100, 0]
+    y_vals = [100 - y_box, 100 - y_box, y_box, y_box]
 
-    fig.add_trace(go.Scatter(
-        showlegend=False,
-        x=[100, (1 - 16 / len_field) * 100, (1 - 16 / len_field) * 100, 100],
-        y=[100 - y_box, 100 - y_box, y_box, y_box],
-        mode='lines',
-        line=dict(color='white', width=2),
-    ))
+    for i in range(len(x_vals) - 1):
+        fig.add_shape(
+            # Line Vertical
+            dict(
+                layer="below",
+                type="line",
+                x0=x_vals[i],
+                y0=y_vals[i],
+                x1=x_vals[i + 1],
+                y1=y_vals[i + 1],
+                line=dict(
+                    color="white",
+                    width=2
+                )))
 
-    fig.add_trace(go.Scatter(
-        showlegend=False,
-        x=[11 / len_field * 100],
-        y=[50],
-        mode="markers",
-        marker=dict(
-            color='white',
-            size=7
-        ),
-    ))
+    # draw right box
+    x_vals = [100, (1 - 16 / len_field) * 100, (1 - 16 / len_field) * 100, 100]
+    y_vals = [100 - y_box, 100 - y_box, y_box, y_box]
 
-    fig.add_trace(go.Scatter(
-        showlegend=False,
-        x=[(1 - 11 / len_field) * 100],
-        y=[50],
-        mode="markers",
-        marker=dict(
-            color='white',
-            size=7
-        ),
-    ))
+    for i in range(len(x_vals) - 1):
+        fig.add_shape(
+            # Line Vertical
+            dict(
+                layer="below",
+                type="line",
+                x0=x_vals[i],
+                y0=y_vals[i],
+                x1=x_vals[i + 1],
+                y1=y_vals[i + 1],
+                line=dict(
+                    color="white",
+                    width=2
+                )))
+
+        # add left penalty point
+    size_point = 0.5
+    pen_point = (11, 50)
+    x_vals = [pen_point[0] - size_point / len_field * 100, pen_point[0] + size_point / len_field * 100]
+    y_vals = [pen_point[1] - size_point / wid_field * 100, pen_point[1] + size_point / wid_field * 100]
+
+    fig.add_shape(
+        # unfilled circle
+        dict(
+            type="circle",
+            xref="x",
+            yref="y",
+            x0=x_vals[0],
+            y0=y_vals[0],
+            x1=x_vals[1],
+            y1=y_vals[1],
+            line_color="white",
+            fillcolor="white",
+            layer="below"
+        )
+    )
+
+    # add right penalty point
+    size_point = 0.5
+    pen_point = ((1 - 11 / len_field) * 100, 50)
+    x_vals = [pen_point[0] - size_point / len_field * 100, pen_point[0] + size_point / len_field * 100]
+    y_vals = [pen_point[1] - size_point / wid_field * 100, pen_point[1] + size_point / wid_field * 100]
+
+    fig.add_shape(
+        # unfilled circle
+        dict(
+            type="circle",
+            xref="x",
+            yref="y",
+            x0=x_vals[0],
+            y0=y_vals[0],
+            x1=x_vals[1],
+            y1=y_vals[1],
+            line_color="white",
+            fillcolor="white",
+            layer="below"
+        )
+    )
+
+    # add middle point
+    size_point = 0.5
+    pen_point = (50, 50)
+    x_vals = [pen_point[0] - size_point / len_field * 100, pen_point[0] + size_point / len_field * 100]
+    y_vals = [pen_point[1] - size_point / wid_field * 100, pen_point[1] + size_point / wid_field * 100]
+
+    fig.add_shape(
+        # unfilled circle
+        dict(
+            type="circle",
+            xref="x",
+            yref="y",
+            x0=x_vals[0],
+            y0=y_vals[0],
+            x1=x_vals[1],
+            y1=y_vals[1],
+            line_color="white",
+            fillcolor="white",
+            layer="below"
+        )
+    )
 
     fig.add_trace(go.Scatter(
         showlegend=False,
@@ -138,43 +202,38 @@ def create_empty_field(below=False):
 
     # Add circles
     if below:
-        fig.update_layout(
-            shapes=[
-                # unfilled circle
-                dict(
-                    type="circle",
-                    xref="x",
-                    yref="y",
-                    x0=circle_x,
-                    y0=circle_y,
-                    x1=100 - circle_x,
-                    y1=100 - circle_y,
-                    line_color="white",
-                    layer="below"
-                ),
-            ]
+        fig.add_shape(
+            dict(
+                type="circle",
+                xref="x",
+                yref="y",
+                x0=circle_x,
+                y0=circle_y,
+                x1=100 - circle_x,
+                y1=100 - circle_y,
+                line_color="white",
+                layer="below"
+            )
         )
     else:
-        fig.update_layout(
-            shapes=[
-                # unfilled circle
-                dict(
-                    type="circle",
-                    xref="x",
-                    yref="y",
-                    x0=circle_x,
-                    y0=circle_y,
-                    x1=100 - circle_x,
-                    y1=100 - circle_y,
-                    line_color="white"
-                ),
-            ]
+        fig.add_shape(
+            dict(
+                type="circle",
+                xref="x",
+                yref="y",
+                x0=circle_x,
+                y0=circle_y,
+                x1=100 - circle_x,
+                y1=100 - circle_y,
+                line_color="white",
+                layer="below"
+            )
         )
 
     fig.update_layout(
         autosize=False,
-        width=105 * 8,
-        height=68 * 8)
+        width=len_field * 8,
+        height=wid_field * 8)
 
     return fig
 
