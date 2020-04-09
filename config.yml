@@ -1,0 +1,12 @@
+data:
+    path: "C://Clemens//Learning//dash//soccer_dashboard//data"
+    team_data: "teams.parquet"
+    player_data: "players.parquet"
+    match_data: "matches_germany.parquet"
+    event_data: "events_germany.parquet"
+    formation_data: "formations_germany.parquet"
+    positional_data: "liverpool_vs_chelsea.csv"
+
+assets:
+    path: "C://Clemens//Learning//dash//soccer_dashboard//assets"
+    img_bundesliga: "bundesliga.jpg"
