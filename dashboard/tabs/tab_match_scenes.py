@@ -1,11 +1,28 @@
 import pandas as pd
 import numpy as np
 import os
-import ruamel.yaml
-import plotly.graph_objects as go
-import components.layout as layout
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
+import ruamel.yaml
+import plotly.graph_objects as go
+
+import dashboard.helper as helper
+
+
+def get_layout(match_video):
+
+    layout_match_video = html.Div(
+        children=[
+            dbc.Row([
+                dcc.Graph(
+                    id="match_video",
+                    figure=match_video
+                )
+            ], justify="center")
+        ]
+    )
+    return layout_match_video
 
 
 def plotly_figure_game():
@@ -33,7 +50,7 @@ def plotly_figure_game():
 
             for k in frame_ids]
 
-    fig = layout.create_empty_field(below=True)
+    fig = helper.create_empty_field(below=True)
 
     fig.update_layout(updatemenus=[dict(
         type="buttons",
