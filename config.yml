@@ -1,3 +1,7 @@
+general:
+    field_length: 105
+    field_width: 68
+
 data:
     path: "C://Clemens//Learning//dash//soccer_dashboard//data"
     team_data: "teams.parquet"

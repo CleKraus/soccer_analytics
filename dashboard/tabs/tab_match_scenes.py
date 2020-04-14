@@ -41,14 +41,13 @@ def plotly_figure_game():
 
     frame_ids = sorted(list(df["frame"].unique()))
 
-    frames=[go.Frame(
-            data=[go.Scatter(
-                x=np.array(df[df["frame"]==k]["x"]),
-                y=np.array(df[df["frame"]==k]["y"]),
-                mode="markers",
-                marker=dict(color=np.array(df[df["frame"]==k]["color"]), size=12))])
-
-            for k in frame_ids]
+    frames = [go.Frame(
+                data=[go.Scatter(
+                    x=np.array(df[df["frame"] == k]["x"]),
+                    y=np.array(df[df["frame"] == k]["y"]),
+                    mode="markers",
+                    marker=dict(color=np.array(df[df["frame"] == k]["color"]), size=12))])
+              for k in frame_ids]
 
     fig = helper.create_empty_field(below=True)
 
