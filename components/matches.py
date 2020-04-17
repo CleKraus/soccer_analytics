@@ -35,6 +35,7 @@ class Matches:
             df_match = df_match[cols]
             return list(df_match.iloc[0])
 
+
 if __name__ == "__main__":
 
     fname = "C://Clemens//Learning//dash//soccer_dashboard//data//matches.parquet"

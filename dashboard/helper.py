@@ -6,7 +6,6 @@ import base64
 import os
 import dash_html_components as html
 import ruamel.yaml
-import plotly.graph_objects as go
 
 
 def create_navigation_bar():
