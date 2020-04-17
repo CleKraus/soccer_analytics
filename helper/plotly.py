@@ -263,8 +263,8 @@ def prepare_event_plot(df, x_col, y_col, label_info=None, left_team=None):
     if label_info is None:
         label_info = {"Time": {"values": "eventSec", "display_type": ".1f"},
                       "Event": {"values": "subEventName"},
-                      "Player": {"values": "shortName"},
-                      "Position": {"values": "position"},
+                      "Player": {"values": "playerName"},
+                      "Position": {"values": "playerPosition"},
                       "EventId": {"values": "id"}
                       }
 
@@ -274,24 +274,26 @@ def prepare_event_plot(df, x_col, y_col, label_info=None, left_team=None):
     df = df.copy()
 
     if left_team is not None:
-        df["awayTeam"] = np.where(df["team1Id"] == left_team, df["team2Id"], df["team1Id"])
+        df["leftTeamId"] = left_team
+    else:
+        df["leftTeamId"] = df["homeTeamId"]
 
     # make sure the id is a string and no float
     df["id"] = df["id"].astype(str)
 
-    # make sure the home team is always playing left to right and the away team right to left
-    df[x_col] = np.where(df["teamId"] == df["awayTeam"], config["general"]["field_length"] - df[x_col], df[x_col])
-    df[y_col] = np.where(df["teamId"] != df["awayTeam"], config["general"]["field_width"] - df[y_col], df[y_col])
+    # make sure the left team is always playing left to right and the other team right to left
+    df[x_col] = np.where(df["teamId"] != df["leftTeamId"], config["general"]["field_length"] - df[x_col], df[x_col])
+    df[y_col] = np.where(df["teamId"] == df["leftTeamId"], config["general"]["field_width"] - df[y_col], df[y_col])
 
     # make sure that duels are mapped together - if not we would have two points at exactly the same position
     df_duel = df[df["eventName"] == "Duel"].copy()
     df_duel[x_col] = np.round(df_duel[x_col], 2)
     df_duel[y_col] = np.round(df_duel[y_col], 2)
-    df_duel["shortName"].fillna("", inplace=True)
-    df_duel["position"].fillna("", inplace=True)
+    df_duel["playerName"].fillna("", inplace=True)
+    df_duel["playerPosition"].fillna("", inplace=True)
     df_group_duel = df_duel.groupby([x_col, y_col]).agg({"eventSec": "min",
-                                                         "shortName": " vs. ".join,
-                                                         "position": " & ".join,
+                                                         "playerName": " vs. ".join,
+                                                         "playerPosition": " & ".join,
                                                          "teamId": "count",
                                                          "id": " & ".join}).reset_index()
 
@@ -313,8 +315,8 @@ def prepare_event_plot(df, x_col, y_col, label_info=None, left_team=None):
     # add the color of the marker
     df["color"] = np.where(df["eventName"].isin(["Interruption", "Offside", "Foul"]), "yellow",
                            np.where(df["teamId"] == -1, "black",
-                                    np.where(df["teamId"] == df["awayTeam"], "blue", "red")))
-    df["labelText"] = np.where(df["color"].isin(["blue", "red"]), df["shortName"], "")
+                                    np.where(df["teamId"] == df["leftTeamId"], "blue", "red")))
+    df["labelText"] = np.where(df["color"].isin(["blue", "red"]), df["playerName"], "")
 
     # show the label (e.g. players name) either above or below the marker depending on the marker position on the field
     df["positionLabel"] = np.where(df[y_col] > 5, "bottom center", "top center")
@@ -395,7 +397,7 @@ def prepare_event_animation(df, x_col_bef, x_col_aft, y_col_bef, y_col_aft):
 
     # compute the duration of each event
     df["durationEvent"] = (df["eventSecNew"].shift(-1) - df["eventSecNew"]).fillna(0)
-    df["shortName"] = np.where(df["shortName"] == "", "Duel", df["shortName"])
+    df["playerName"] = np.where(df["playerName"] == "", "Duel", df["playerName"])
 
     return df
 
@@ -506,7 +508,7 @@ def create_event_animation(df, total_seconds, fps=10,
         x=np.array(tmp_df[x_col_bef]),
         y=np.array(tmp_df[y_col_bef]),
         mode="markers+text",
-        text=np.array(tmp_df["shortName"]),
+        text=np.array(tmp_df["playerName"]),
         textposition=np.array(tmp_df["positionLabel"]),
         marker=dict(color=np.array(tmp_df["color"]), size=12),
         hovertext=tmp_df["hoverInfo"],
@@ -533,7 +535,7 @@ def create_event_animation(df, total_seconds, fps=10,
             x=x_pos,
             y=y_pos,
             mode="markers+text",
-            text=np.array(tmp_df["shortName"]),
+            text=np.array(tmp_df["playerName"]),
             textposition=np.array(tmp_df["positionLabel"]),
             marker=dict(color=np.array(tmp_df["color"]), size=12),
             hovertext=tmp_df["hoverInfo"],
