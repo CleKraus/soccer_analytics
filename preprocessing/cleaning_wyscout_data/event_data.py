@@ -1,4 +1,5 @@
 
+# import packages
 import os
 import json
 import pandas as pd
@@ -18,6 +19,8 @@ PATH_CLEAN = "data"
 country = "Germany"
 fname_events = f"events/events_{country}.json"
 fname_tags = "tags.csv"
+fname_players = "players.parquet"
+fname_matches = f"matches_{country.lower()}.parquet"
 fname_out = f"events_{country.lower()}.parquet"
 
 
@@ -30,10 +33,10 @@ def compute_possession(row):
     elif row["eventName"] == "Duel" and row["Accurate"] == 1:
         return row["teamId"]
     elif row["eventName"] == "Duel" and row["Accurate"] == 0:
-        if row["teamId"] == row["team1Id"]:
-            return row["team2Id"]
+        if row["teamId"] == row["homeTeamId"]:
+            return row["awayTeamId"]
         else:
-            return row["team1Id"]
+            return row["homeTeamId"]
     elif row["eventName"] in ["Foul", "Interruption", "Offside"]:
         return 0
     else:
@@ -96,27 +99,75 @@ num_cols = ["subEventId"]
 for col in num_cols:
     df_events[col] = pd.to_numeric(df_events[col], errors="coerce")
 
-# get the two teams that play the match
-df_teams_per_match = df_events.groupby("matchId").agg(team1Id=("teamId", "min"),
-                                                      team2Id=("teamId", "max")).reset_index()
-df_events = pd.merge(df_events, df_teams_per_match, how="left")
-
+# make sure that the event "Offside" also leads to a subevent "Offside"
 df_events["subEventName"] = np.where(df_events["eventName"] == "Offside", "Offside", df_events["subEventName"])
-
-# compute the team that is currently in possession of the ball
-df_events["teamPossession"] = df_events.apply(lambda row: compute_possession(row), axis=1)
 
 # make sure the goal kick is always taken at the own goal
 df_events["posBeforeX"] = np.where(df_events["subEventName"] == "Goal kick", 5, df_events["posBeforeX"])
 df_events["posBeforeY"] = np.where(df_events["subEventName"] == "Goal kick", 50, df_events["posBeforeY"])
 
 # make sure the save attempt always happens at the own goal (currently at (0,0) or (100,100))
-df_events["posBeforeX"] = np.where(df_events["subEventName"].isin(["Save attempt", "Reflexes"]), 0, df_events["posBeforeX"])
-df_events["posBeforeY"] = np.where(df_events["subEventName"].isin(["Save attempt", "Reflexes"]), 50, df_events["posBeforeY"])
+df_events["posBeforeX"] = np.where(df_events["subEventName"].isin(["Save attempt", "Reflexes"]), 0,
+                                   df_events["posBeforeX"])
+df_events["posBeforeY"] = np.where(df_events["subEventName"].isin(["Save attempt", "Reflexes"]), 50,
+                                   df_events["posBeforeY"])
 
 # get the position of the event in meters
 df_events = add_position_in_meters(df_events, cols_length=["posBeforeX", "posAfterX"],
                                    cols_width=["posBeforeY", "posAfterY"], field_length=field_length,
                                    field_width=field_width)
+
+# Prepare the output table
+##########################
+
+# drop columns that are not needed any more
+pos_cols = [col for col in df_events.columns if col.startswith("Position:")]
+cols_drop = ["eventId", "subEventId", "posBeforeX", "posAfterX", "posBeforeY", "posAfterY", "Free space right",
+             "Free space left", "Missed ball", "Take on left", "Take on right", "Sliding tackle", "Through", "Fairplay",
+             "Lost", "Neutral", "Won", "Red card", "Yellow card", "Second yellow card", "Anticipated", "Anticipation",
+             "High", "Low", "Interception", "Clearance", "Opportunity", "Feint", "Blocked"] + pos_cols
+cols_drop = [col for col in cols_drop if col in df_events.columns]
+df_events.drop(cols_drop, axis=1, inplace=True)
+
+# add some player information
+df_players = pd.read_parquet(os.path.join(PATH_CLEAN, fname_players))
+df_players = df_players[["playerId", "shortName", "foot", "role.code2"]].copy()
+df_players.rename(columns={"role.code2": "playerPosition", "foot": "playerStrongFoot", "shortName":"playerName"},
+                  inplace=True)
+df_events = pd.merge(df_events, df_players, on="playerId", how="left")
+
+# add home and away team
+df_matches = pd.read_parquet(os.path.join(PATH_CLEAN, fname_matches))
+
+for side in ["home", "away"]:
+    df_side = df_matches[df_matches["side"] == side][["matchId", "teamId"]]
+    df_side.rename(columns={"teamId": f"{side}TeamId"}, inplace=True)
+    df_events = pd.merge(df_events, df_side, on="matchId", how="left")
+
+# compute the team that is currently in possession of the ball
+df_events["teamPossession"] = df_events.apply(lambda row: compute_possession(row), axis=1)
+
+# change column names to camelCase
+lowercase_cols = [col[0].lower() + col[1:] for col in df_events.columns]
+df_events.columns = lowercase_cols
+
+col_changes = {"own goal": "ownGoal",
+               "key pass": "keyPass",
+               "counter attack": "counterAttack",
+               "left foot": "leftFoot",
+               "right foot": "rightFoot",
+               "dangerous ball lost": "dangerousBallLost",
+               "not accurate": "notAccurate"}
+
+df_events.rename(columns=col_changes, inplace=True)
+
+# bring columns into correct order
+col_order = ["id", "matchId", "matchPeriod", "eventSec", "eventName", "subEventName", "teamId", "posBeforeXMeters",
+             "posBeforeYMeters", "posAfterXMeters", "posAfterYMeters", "playerId", "playerName", "playerPosition",
+             "playerStrongFoot", "teamPossession", "homeTeamId", "awayTeamId", "accurate", "notAccurate"]
+
+other_cols = [col for col in df_events.columns if not col in col_order]
+col_order = col_order + other_cols
+df_events = df_events[col_order].copy()
 
 df_events.to_parquet(os.path.join(PATH_CLEAN, fname_out))

@@ -1,16 +1,20 @@
 general:
-    field_length: 105
-    field_width: 68
+  # do not change project name
+  project_name: soccer_dashboard
+  # project_path will be automatically set
+  project_path: C:\Clemens\Learning\dash\soccer_dashboard
+  field_length: 105
+  field_width: 68
 
 data:
-    path: "C://Clemens//Learning//dash//soccer_dashboard//data"
-    team_data: "teams.parquet"
-    player_data: "players.parquet"
-    match_data: "matches_germany.parquet"
-    event_data: "events_germany.parquet"
-    formation_data: "formations_germany.parquet"
-    positional_data: "liverpool_vs_chelsea.csv"
+  path: data
+  team_data: teams_xxxxx.parquet
+  player_data: players.parquet
+  match_data: matches_xxxxx.parquet
+  event_data: events_xxxxx.parquet
+  formation_data: formations_xxxxx.parquet
+  positional_data: liverpool_vs_chelsea.csv
 
 assets:
-    path: "C://Clemens//Learning//dash//soccer_dashboard//assets"
-    img_bundesliga: "bundesliga.jpg"
+  path: assets
+  img_bundesliga: bundesliga.jpg
