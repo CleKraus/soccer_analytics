@@ -6,12 +6,16 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
-from components.analyzer import Analyzer
+from dashboard.components import Analyzer
 import dashboard.helper as helper
 import dashboard.tabs.tab_match_overview as tab_match_overview
 import dashboard.tabs.tab_match_scenes as tab_match_scenes
 
+
 logging.basicConfig(level=logging.DEBUG)
+
+if True:
+    raise ValueError("Dashboard does not work at the moment!")
 
 # pre-processing steps
 ######################

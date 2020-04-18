@@ -4,11 +4,11 @@ import pandas as pd
 import numpy as np
 import ruamel.yaml
 
-from components.teams import Teams
-from components.matches import Matches
-from components.players import Players
-from components.events import Events
-from components.formations import Formations
+from dashboard.components import Teams
+from dashboard.components.matches import Matches
+from dashboard.components.players import Players
+from dashboard.components import Events
+from dashboard.components import Formations
 
 
 class Analyzer:
