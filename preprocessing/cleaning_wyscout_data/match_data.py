@@ -1,19 +1,13 @@
+# -*- coding: utf-8 -*-
 
-import os
-import json
+# import packages
+import logging
 import pandas as pd
 import numpy as np
 
-pd.set_option('display.max_rows', 500)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
+import helper.io as io
 
-PATH = "C://Clemens//Learning//dash//soccer_dashboard//data//raw_data//wyscout_data"
-PATH_CLEAN = "C://Clemens//Learning//dash//soccer_dashboard//data"
-
-fname_matches = "matches/matches_Germany.json"
-fname_matches_out = "matches_germany.parquet"
-fnames_formations_out = "formations_germany.parquet"
+logging.basicConfig(level=logging.DEBUG)
 
 
 def get_team_view(matches, team):
@@ -81,24 +75,36 @@ def get_all_formations(matches):
     return all_formations
 
 
-# read the JSON file
-with open(os.path.join(PATH, fname_matches)) as json_file:
-    matches = json.load(json_file)
+def cleanse_wyscout_match_data(country):
+    """
+    Function to cleanse the wyscout match data and save it in the data folder
+    :param country: (str) Country for which the event data should be cleansed
+    :return: None
+    """
 
-# save relevant information in data frame
-df_matches = pd.concat([get_team_view(matches, 0), get_team_view(matches, 1)], axis=0)
+    logging.info(f"Cleansing wyscout match data for {country}")
 
-# attach the points per team
-df_matches["points"] = np.where(df_matches["score"] > df_matches["oppScore"], 3,
-                                np.where(df_matches["score"] == df_matches["oppScore"], 1, 0))
+    # read the JSON file with matches
+    matches = io.read_data("match_data", league=country, data_folder="raw_data_wyscout")
 
-df_matches["dateutc"] = pd.to_datetime(df_matches["dateutc"])
+    # save relevant information in data frame
+    df_matches = pd.concat([get_team_view(matches, 0), get_team_view(matches, 1)], axis=0)
 
-df_matches["scoreDiff"] = df_matches["score"] - df_matches["oppScore"]
+    # attach the points per team
+    df_matches["points"] = np.where(df_matches["score"] > df_matches["oppScore"], 3,
+                                    np.where(df_matches["score"] == df_matches["oppScore"], 1, 0))
 
-df_matches.sort_values(["matchId", "side"], ascending=[True, False], inplace=True)
+    df_matches["dateutc"] = pd.to_datetime(df_matches["dateutc"])
 
-df_matches.to_parquet(os.path.join(PATH_CLEAN, fname_matches_out))
+    df_matches["scoreDiff"] = df_matches["score"] - df_matches["oppScore"]
 
-df_formations = get_all_formations(matches)
-df_formations.to_parquet(os.path.join(PATH_CLEAN, fnames_formations_out))
+    df_matches.sort_values(["matchId", "side"], ascending=[True, False], inplace=True)
+    io.write_data(df_matches, "match_data", league=country.lower())
+
+    df_formations = get_all_formations(matches)
+    io.write_data(df_formations, "formation_data", league=country.lower())
+
+
+if __name__ == "__main__":
+
+    cleanse_wyscout_match_data("Germany")
