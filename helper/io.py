@@ -4,6 +4,11 @@
 import os
 import ruamel.yaml
 import pandas as pd
+import json
+
+
+PROJECT_NAME = "soccer_dashboard"
+CONFIG_NAME = "config.yml"
 
 
 def _update_project_path():
@@ -11,7 +16,7 @@ def _update_project_path():
     Helper function to update the project path in the config file
     """
     # get the current config file
-    with open("config.yml", "r", encoding="utf-8") as f:
+    with open(_get_config_file(), "r", encoding="utf-8") as f:
         config = ruamel.yaml.YAML().load(f)
 
         # get the current path
@@ -23,12 +28,24 @@ def _update_project_path():
         config["general"]["project_path"] = project_path
 
     # update the config file
-    with open("config.yml", "w", encoding="utf-8") as f:
+    with open(_get_config_file(), "w", encoding="utf-8") as f:
         yaml = ruamel.yaml.YAML()
         yaml.default_flow_style = False
         yaml.dump(config, f)
 
     return project_path
+
+
+def _get_config_file():
+    """
+    Helper function to retrieve the name of the config-file
+    :return: String with the config file name
+    """
+
+    path = os.getcwd()
+    project_path = path.rsplit(PROJECT_NAME)[0] + PROJECT_NAME
+
+    return os.path.join(project_path, CONFIG_NAME)
 
 
 def _read_file(path, sep=None):
@@ -41,7 +58,8 @@ def _read_file(path, sep=None):
     if file_type == "parquet":
         file = pd.read_parquet(path)
     elif file_type == "json":
-        pass
+        with open(path) as json_file:
+            file = json.load(json_file)
     elif file_type == "csv":
         if sep is None:
             raise ValueError(f"csv-files require a separator")
@@ -52,27 +70,34 @@ def _read_file(path, sep=None):
     return file
 
 
-def read_data(data_type, league=None, sep=None):
+def read_data(data_type, league=None, sep=None, data_folder=None):
     """
     Function to read data specified in the config file under "data"
     :param data_type: (str) Type of data (event, match, player, ...) to be read. Needs to exactly match the name in
                       the config file
     :param league: (str) League to be read in case there are different files (e.g. Germany, Englang, ...)
     :param sep: (str) Separator in case a csv-file is read
+    :param data_folder: (str) In case any other data folder than "data" from the config file is required, it should be
+                        specified here (e.g. when reading the raw_wyscout data, one should set *data_folder* to
+                        "raw_data_wyscout"
     :return: Data from the specified *data_type*. Can be pd.DataFrame or dict depending on whether a parquet/csv or a
              JSON file was specified
     """
 
     # read the config file
-    with open("config.yml", "r", encoding="utf-8") as f:
+    with open(_get_config_file(), "r", encoding="utf-8") as f:
         config = ruamel.yaml.YAML().load(f)
 
     # extract the project path
     project_path = config["general"]["project_path"]
 
+    # set the data_folder
+    if data_folder is None:
+        data_folder = "data"
+
     # make sure the data type is valid
     try:
-        fname = config["data"][data_type]
+        fname = config[data_folder][data_type]
     except KeyError:
         raise KeyError(f"'{data_type}' is not a valid data type")
 
@@ -81,15 +106,15 @@ def read_data(data_type, league=None, sep=None):
         if league is None:
             raise ValueError(f"Data type {data_type} requires a league")
         else:
-            fname = fname.replace("xxxxx", league.lower())
+            fname = fname.replace("xxxxx", league)
 
-    full_path = os.path.join(project_path, config["data"]["path"], fname)
+    full_path = os.path.join(project_path, config[data_folder]["path"], fname)
 
     # notice that if we have an issue with finding the file, we first try to update
     # the project path
     if not os.path.exists(full_path):
         project_path = _update_project_path()
-        full_path = os.path.join(project_path, config["data"]["path"], fname)
+        full_path = os.path.join(project_path, config[data_folder]["path"], fname)
 
     data = _read_file(full_path, sep)
 
@@ -131,3 +156,48 @@ def read_team_data(league, notebook=None):
     df = read_data("team_data", league)
 
     return df
+
+
+def write_data(df, data_type, league=None, data_folder=None):
+    """
+    Function to save *df* in the path specified in the config file under "data" (or *data_folder* if specified)
+    :param df: (pd.DataFrame) Data frame to write as parquet file
+    :param data_type: (str) Type of data (event, match, player, ...) to be read. Needs to exactly match the name in
+                      the config file
+    :param league: (str) League to be read in case there are different files (e.g. Germany, Englang, ...)
+    :param data_folder: (str) In case any other data folder than "data" from the config file is required, it should be
+                        specified here
+    :return: None
+    """
+
+    # read the config file
+    with open(_get_config_file(), "r", encoding="utf-8") as f:
+        config = ruamel.yaml.YAML().load(f)
+
+    # extract the project path
+    project_path = config["general"]["project_path"]
+
+    # notice that if the project path does not exist, we update it with the current path
+    if not os.path.exists(project_path):
+        project_path = _update_project_path()
+
+    # set the data_folder
+    if data_folder is None:
+        data_folder = "data"
+
+    # make sure the data type is valid
+    try:
+        fname = config[data_folder][data_type]
+    except KeyError:
+        raise KeyError(f"'{data_type}' is not a valid data type. Please set in the config file")
+
+    # replace xxxxx by the league name
+    if "xxxxx" in fname:
+        if league is None:
+            raise ValueError(f"Data type {data_type} requires a league")
+        else:
+            fname = fname.replace("xxxxx", league)
+
+    full_path = os.path.join(project_path, config[data_folder]["path"], fname)
+
+    df.to_parquet(full_path)
