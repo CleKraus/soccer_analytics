@@ -15,6 +15,14 @@ data:
   formation_data: formations_xxxxx.parquet
   positional_data: liverpool_vs_chelsea.csv
 
+raw_data_wyscout:
+  path: data\raw_data\wyscout_data
+  team_data: teams.json
+  player_data: players.json
+  event_data: events\events_xxxxx.json
+  match_data: matches\matches_xxxxx.json
+  tags: tags.csv
+
 assets:
   path: assets
   img_bundesliga: bundesliga.jpg
