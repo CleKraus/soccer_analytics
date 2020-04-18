@@ -1,6 +1,6 @@
 general:
   # do not change project name
-  project_name: soccer_dashboard
+  project_name: soccer_analytics
   # project_path will be automatically set
   project_path: C:\Clemens\Learning\dash\soccer_dashboard
   field_length: 105
