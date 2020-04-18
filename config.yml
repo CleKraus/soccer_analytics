@@ -2,7 +2,7 @@ general:
   # do not change project name
   project_name: soccer_analytics
   # project_path will be automatically set
-  project_path: C:\Clemens\Learning\dash\soccer_dashboard
+  project_path: C:\Clemens\Learning\soccer_analytics
   field_length: 105
   field_width: 68
 
@@ -13,7 +13,6 @@ data:
   match_data: matches_xxxxx.parquet
   event_data: events_xxxxx.parquet
   formation_data: formations_xxxxx.parquet
-  positional_data: liverpool_vs_chelsea.csv
 
 raw_data_wyscout:
   path: data\raw_data\wyscout_data
@@ -22,7 +21,3 @@ raw_data_wyscout:
   event_data: events\events_xxxxx.json
   match_data: matches\matches_xxxxx.json
   tags: tags.csv
-
-assets:
-  path: assets
-  img_bundesliga: bundesliga.jpg
