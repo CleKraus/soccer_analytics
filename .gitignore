@@ -1,4 +1,5 @@
 __pycache__/
 .idea/
-data/
+data/raw_data/
+data/old_data/
 notebooks/.ipynb_checkpoints
