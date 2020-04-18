@@ -7,7 +7,7 @@ import pandas as pd
 import json
 
 
-PROJECT_NAME = "soccer_dashboard"
+PROJECT_NAME = "soccer_analytics"
 CONFIG_NAME = "config.yml"
 
 
@@ -24,7 +24,7 @@ def _update_project_path():
         project_name = config["general"]["project_name"]
 
         # update the project path
-        project_path = current_path.rsplit(project_name)[0] + project_name
+        project_path = current_path.rsplit(project_name)[0] + os.sep + project_name
         config["general"]["project_path"] = project_path
 
     # update the config file
@@ -43,7 +43,7 @@ def _get_config_file():
     """
 
     path = os.getcwd()
-    project_path = path.rsplit(PROJECT_NAME)[0] + PROJECT_NAME
+    project_path = path.rsplit(PROJECT_NAME)[0] + os.sep + PROJECT_NAME
 
     return os.path.join(project_path, CONFIG_NAME)
 
