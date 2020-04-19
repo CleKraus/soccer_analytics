@@ -10,3 +10,12 @@
 * Set in a way so that function are easily extendable
 * All plots and animations are created with [plotly](https://plotly.com/python/) and therefore easily integretable into [dash](https://plotly.com/dash/) dashboards
 * Supports python 3.6
+
+## Installation
+If you are new to Python and soccer analytics I would recommend to you to download [Anaconda distribution](https://www.anaconda.com/distribution/#download-section) and follow 
+the instraction under [Conda](#Conda)
+
+### Conda
+1. Open the Anaconda Prompt
+2. Create a new conda environment "soccer_analytics"
+'conda create -n soccer_analytics python=3.6'
