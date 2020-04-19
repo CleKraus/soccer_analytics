@@ -17,5 +17,5 @@ the instraction under [Conda](#Conda)
 
 ### Conda
 1. Open the Anaconda Prompt
-2. Create a new conda environment "soccer_analytics"
-'conda create -n soccer_analytics python=3.6'
+2. Create a new conda environment "soccer_analytics"\
+`conda create -n soccer_analytics python=3.6`
