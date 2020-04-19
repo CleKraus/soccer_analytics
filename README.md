@@ -14,9 +14,9 @@
 ## Examples
 
 ### Event visualisation
-![](docs/img/event_example.JPG)<!-- .element height="50%" width="50%" -->
+![](docs/img/event_example.JPG)<!-- .element height="20%" width="20%" -->
 ### Heatmap
-![](docs/img/heatmap_example.JPG)<!-- .element height="50%" width="50%" -->
+![](docs/img/heatmap_example.JPG)<!-- .element height="20%" width="20%" -->
 
 ## Tutorial
 This projects includes a number of notebooks that serve as tutorial on how to use the helper functions and might be a good starting point into soccer analytics in general.
