@@ -3,6 +3,3 @@ __pycache__/
 data/raw_data/
 data/old_data/
 notebooks/.ipynb_checkpoints
-
-links.txt
-dashboard/
