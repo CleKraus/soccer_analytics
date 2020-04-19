@@ -14,7 +14,6 @@ dash-table==4.6.2
 decorator==4.4.2
 defusedxml==0.6.0
 entrypoints==0.3
-fastparquet==0.3.3
 Flask==1.1.2
 Flask-Compress==1.4.0
 future==0.18.2

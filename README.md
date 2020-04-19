@@ -16,6 +16,8 @@ If you are new to Python and soccer analytics I would recommend to you to downlo
 the instraction under [Conda](#Conda)
 
 ### Conda
-1. Open the Anaconda Prompt
+1. Open the Anaconda Prompt and cd to the project folder
 2. Create a new conda environment "soccer_analytics"\
 `conda create -n soccer_analytics python=3.6`
+3. Activate the conda environment\
+`conda activate soccer_analytics`
