@@ -11,9 +11,22 @@
 * All plots and animations are created with [plotly](https://plotly.com/python/) and therefore easily integretable into [dash](https://plotly.com/dash/) dashboards
 * Supports python 3.6
 
+## Examples
+
+### Event visualisation
+[](docs/img/event_example.JPG)
+### Heatmap
+[](docs/img/heatmap_example.JPG)
+
+## Tutorial
+This projects includes a number of notebooks that serve as tutorial on how to use the helper functions and might be a good starting point into soccer analytics in general.
+The notebooks can be found [here](notebooks) and I recommend to go through them in the following order:
+
+1. [goal_kick_analysis](notebooks/goal_kick_analysis.ipynb)
+
 ## Installation
 If you are new to Python and soccer analytics I would recommend to you to download [Anaconda distribution](https://www.anaconda.com/distribution/#download-section) and follow 
-the instraction under [Conda](#Conda)
+the instruction under [Conda](#Conda)
 
 ### Conda
 1. Open the Anaconda Prompt and cd to the project folder
@@ -21,3 +34,8 @@ the instraction under [Conda](#Conda)
 `conda create -n soccer_analytics python=3.6`
 3. Activate the conda environment\
 `conda activate soccer_analytics`
+4. Install all required packages\
+`pip install -r requirements.txt`
+
+## Acknowledgements
+
