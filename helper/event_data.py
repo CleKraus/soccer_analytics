@@ -82,7 +82,7 @@ def get_event_after(df, df_events, considered_events, cols_return):
     df_event_after = df_all.drop_duplicates("id")
 
     if colname_sec is not None:
-        df_event_after.rename(columns={"eventSecRelEvent": colname_sec}, inplace=True)
+        df_event_after = df_event_after.rename(columns={"eventSecRelEvent": colname_sec})
         cols = ["id", colname_sec]
     else:
         cols = ["id"]
