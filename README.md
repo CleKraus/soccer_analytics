@@ -14,18 +14,18 @@
 ## Examples
 
 ### Event visualisation
-![](docs/img/event_example.JPG)
+![](docs/img/event_example.JPG)<!-- .element height="50%" width="50%" -->
 ### Heatmap
-![](docs/img/heatmap_example.JPG)
+![](docs/img/heatmap_example.JPG)<!-- .element height="50%" width="50%" -->
 
 ## Tutorial
 This projects includes a number of notebooks that serve as tutorial on how to use the helper functions and might be a good starting point into soccer analytics in general.
 The notebooks can be found [here](notebooks) and I recommend to go through them in the following order:
 
-1. [Goal kick analysis](notebooks/goal_kick_analysis.ipynb): In this notebook we analyse goal kicks made in the Bundesliga. On the way we learn how to:
-- Use bar plots in plotly
-- Visualize events on a soccer field through graphs and animations
-- Draw heatmaps on a soccer field
+1. [Goal kick analysis](notebooks/goal_kick_analysis.ipynb): In this notebook we analyse goal kicks made in the Bundesliga. On the way we learn how to
+    - Use bar plots in plotly
+    - Visualize events on a soccer field through graphs and animations
+    - Draw heatmaps on a soccer field
 
 ## Installation
 If you are new to Python and soccer analytics I would recommend to you to download [Anaconda distribution](https://www.anaconda.com/distribution/#download-section) and follow 
