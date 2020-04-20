@@ -19,7 +19,7 @@ def get_table(df_all_matches, week=None, side=None):
         df_played_matches.groupby("teamId")
         .agg(
             goals=("score", "sum"),
-            counterGoals=("oppScore", "sum"),
+            concededGoals=("oppScore", "sum"),
             goalsDiff=("scoreDiff", "sum"),
             points=("points", "sum"),
             matches=("teamId", "count")
@@ -50,7 +50,7 @@ def get_pretty_table(df_all_matches, df_teams, week=None, side=None):
         "teamName",
         "matches",
         "goals",
-        "counterGoals",
+        "concededGoals",
         "goalsDiff",
         "points",
     ]
