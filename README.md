@@ -22,7 +22,7 @@
 This projects includes a number of notebooks that serve as tutorial on how to use the helper functions and might be a good starting point into soccer analytics in general.
 The notebooks can be found [here](notebooks) and I recommend to go through them in the following order:
 
-1. [Exploratory analysis event data](notebooks/event_data_overview.ipynb): This notebook gives you an overview over the pre-processed wyscout data that we are going to use 
+1. [Exploratory analysis event data](notebooks/exploratory_analysis_event_data.ipynb): This notebook gives you an overview over the pre-processed wyscout data that we are going to use 
 and run rudimentary exploratory analysis using pandas-profiling
 2. [Goal kick analysis](notebooks/goal_kick_analysis.ipynb): In this notebook we analyse goal kicks made in the Bundesliga. On the way we learn how to
     - Use bar plots in plotly
@@ -46,7 +46,8 @@ the instruction under [Conda](#Conda)
 ## FAQs
 **Q:** Most of the notebooks use data of the German Bundesliga. Can I also use other leagues?
 
-**A:** Yes, this is possibly! However, you will need to run the pre-processing yourself before being able to use the notebooks. Just follow these steps:
+**A:** Yes, this is possible! However, you will need to run the pre-processing yourself before being able 
+to use the data in the notebooks. Just follow these steps:
 1. Download the [wyscout data](https://figshare.com/collections/Soccer_match_event_dataset/4415000/2)
 2. Unzip it and save it under data/raw_data/wyscout data , i.e. there should be *players.json* 
 and *teams.json* as well as two folders *events* and *matches* with the event data and match data, respectively.
