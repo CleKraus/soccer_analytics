@@ -52,6 +52,9 @@ def cleanse_wyscout_player_data():
     df_players.rename(columns={"role.code2": "playerPosition", "foot": "playerStrongFoot", "shortName": "playerName"},
                       inplace=True)
 
+    cols_keep = [col for col in df_players.columns if col.startswith("player")]
+    df_players = df_players[cols_keep].copy()
+
     io.write_data(df_players, data_type="player_data")
 
 
