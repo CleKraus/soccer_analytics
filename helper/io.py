@@ -158,6 +158,50 @@ def read_team_data(league, notebook=None):
     return df
 
 
+def read_match_data(league, notebook=None):
+    """
+    Reads the match data of the specified league. If *notebook* is set and defined below, only the required subset
+    of the match data is returned
+    :param league: (str) League for which the match data should be read
+    :param notebook: (str, optional) If specified, only the subset of the match data required for the *notebook* is
+                      returned
+    :return: pd.DataFrame with the team data
+    """
+
+    df = read_data("match_data", league)
+
+    return df
+
+
+def read_formation_data(league, notebook=None):
+    """
+    Reads the formation data of the specified league. If *notebook* is set and defined below, only the required subset
+    of the formation data is returned
+    :param league: (str) League for which the formation data should be read
+    :param notebook: (str, optional) If specified, only the subset of the formation data required for the *notebook* is
+                      returned
+    :return: pd.DataFrame with the formation data
+    """
+
+    df = read_data("formation_data", league)
+
+    return df
+
+
+def read_player_data(notebook=None):
+    """
+    Reads the player data. If *notebook* is set and defined below, only the required subset
+    of the player data is returned
+    :param notebook: (str, optional) If specified, only the subset of the player data required for the *notebook* is
+                      returned
+    :return: pd.DataFrame with the player data
+    """
+
+    df = read_data("player_data")
+
+    return df
+
+
 def write_data(df, data_type, league=None, data_folder=None):
     """
     Function to save *df* in the path specified in the config file under "data" (or *data_folder* if specified)
