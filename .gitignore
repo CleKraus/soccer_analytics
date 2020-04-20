@@ -1,5 +1,9 @@
 __pycache__/
 .idea/
-data/raw_data/
+data/raw_data/kaggle_data
+data/raw_data/wyscout_data/events
+data/raw_data/wyscout_data/matches
+data/raw_data/wyscout_data/players.json
+data/raw_data/wyscout_data/teams.json
 data/old_data/
 notebooks/.ipynb_checkpoints
