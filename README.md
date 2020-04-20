@@ -43,7 +43,7 @@ the instruction under [Conda](#Conda)
 4. Install all required packages\
 `pip install -r requirements.txt`
 
-### FAQs
+## FAQs
 **Q:** Most of the notebooks use data of the German Bundesliga. Can I also use other leagues?
 
 **A:** Yes, this is possibly! However, you will need to run the pre-processing yourself before being able to use the notebooks. Just follow these steps:
@@ -52,7 +52,6 @@ the instruction under [Conda](#Conda)
 and *teams.json* as well as two folders *events* and *matches* with the event data and match data, respectively.
 3. Set your league in the [wyscout_cleansing_pipeline.py](preprocessing/cleaning_wyscout_data/wyscout_cleansing_pipeline.py) script under *preprocessing/cleaning_wyscout_data* and run it
 4. Once the script ran, you should see additional files in the *data* folder that you can use in the notebooks
-##
 
 ## Acknowledgements
 
