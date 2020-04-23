@@ -56,3 +56,35 @@ def get_pretty_table(df_all_matches, df_teams, week=None, side=None):
     ]
     df_table = df_table[cols].copy()
     return df_table
+
+
+def rotate_vectors(x, y, radians):
+    """
+    Helper function to rotate 2-dim vectors by *radians*. The vectors need to be passed to the
+    function through their x and y coordinates.
+    """
+    c, s = np.cos(radians), np.sin(radians)
+    j = np.matrix([[c, s], [-s, c]])
+    m = np.dot(j, [x, y])
+
+    return np.array(m[0].ravel())[0], np.array(m[1].ravel())[0]
+
+
+def compute_gini(array):
+    """
+    Given an *array* with values the function computes the Gini coefficient of these values
+    """
+    # convert to np.array in case of a pd.Series
+    if type(array) == pd.core.series.Series:
+        array = array.to_numpy()
+
+    # array = array.flatten()
+    # sort the values
+    array = np.sort(array)
+
+    # set index and number of elements
+    index = np.arange(1, array.shape[0] + 1)
+    n = array.shape[0]
+
+    # return the Gini index
+    return (np.sum((2 * index - n - 1) * array)) / (n * np.sum(array))
