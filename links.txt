@@ -3,6 +3,7 @@ Data
 Kaggle event data: https://www.kaggle.com/secareanualin/football-events
 Wyscout soccer event data: https://figshare.com/collections/Soccer_match_event_dataset/4415000/2
 Statsbomb open source data: https://github.com/statsbomb/open-data
+Metrica tracking data: https://github.com/metrica-sports/sample-data
 
 Articles & Notebooks
 --------------------
