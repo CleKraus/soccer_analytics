@@ -72,6 +72,26 @@ def get_all_formations(matches):
             lst_formations.append(df_formation)
 
     all_formations = pd.concat(lst_formations)
+
+    # get the minute the player started and the minute the player ended the match
+    all_formations["minuteStart"] = np.where(all_formations["substituteIn"].isnull(), 0, all_formations["substituteIn"])
+    all_formations["minuteEnd"] = np.where(all_formations["substituteOut"].isnull(), 90, all_formations["substituteOut"])
+
+    # make sure the match always lasts 90 minutes
+    all_formations["minuteStart"] = np.minimum(all_formations["minuteStart"], 90)
+    all_formations["minuteEnd"] = np.minimum(all_formations["minuteEnd"], 90)
+
+    # set minuteEnd to 0 in case the player was not in the lineup and did not get substituted in
+    all_formations["minuteEnd"] = np.where((all_formations["lineup"] == 0) & (all_formations["substituteIn"].isnull()),
+                                           0, all_formations["minuteEnd"])
+
+    # compute the minutes played
+    all_formations["minutesPlayed"] = all_formations["minuteEnd"] - all_formations["minuteStart"]
+
+    # use a binary flag of substitution rather than a minute and NaNs
+    all_formations["substituteIn"] = 1 * (all_formations["substituteIn"].notnull())
+    all_formations["substituteOut"] = 1 * (all_formations["substituteOut"].notnull())
+
     return all_formations
 
 
