@@ -4,9 +4,14 @@
 import numpy as np
 import pandas as pd
 import ruamel.yaml
+import scipy.spatial
+import math
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from plotly.colors import DEFAULT_PLOTLY_COLORS
+
+import helper.event_data as ed_help
+import helper.general as gen_help
 
 
 def create_empty_field(below=False, len_field=105, wid_field=68):
@@ -799,7 +804,7 @@ def prepare_heatmap(df, col_x, col_y, nb_buckets_x, nb_buckets_y, min_val_x=0, m
     return img, x, y
 
 
-def create_heatmap(x, y, z, dict_info, title_name=None):
+def create_heatmap(x, y, z, dict_info, title_name=None, colour_scale=None, legend_name=None):
 
     # Prepare the text to be shown when hovering over the heatmap
     hovertext = list()
@@ -816,9 +821,490 @@ def create_heatmap(x, y, z, dict_info, title_name=None):
     fig = create_empty_field()
     # overlay field with the heatmap
     fig.add_trace(
-        go.Heatmap(x=x, y=y, z=z, hoverinfo='text', text=hovertext)
+        go.Heatmap(x=x, y=y, z=z,
+                   hoverinfo="text",
+                   text=hovertext)
     )
 
+    if colour_scale is not None:
+        fig["data"][-1]["zmin"] = colour_scale[0]
+        fig["data"][-1]["zmax"] = colour_scale[1]
+
+    if title_name is not None:
+        fig.update_layout(
+            title={
+                'text': title_name,
+                'y': 0.9,
+                'x': 0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'})
+
+    if legend_name is not None:
+        fig.update_layout(
+            annotations=[
+                dict(
+                    x=1.07,
+                    y=1.03,
+                    align="right",
+                    valign="top",
+                    text=legend_name,
+                    showarrow=False,
+                    xref="paper",
+                    yref="paper",
+                    xanchor="center",
+                    yanchor="top"
+                )
+            ]
+        )
+
+    return fig
+
+
+def get_match_title(match_id, df_matches, df_teams, perspective="home"):
+    """
+    Given the *match_id* function computes a match title such as "Bayern München - Bayer Leverkusen 3:1"
+    :param match_id: (int) Identifier of the match
+    :param df_matches: (pd.DataFrame) Data frame with matches (needs to contain *match_id*)
+    :param df_teams: (pd.DataFrame) Data frame with the teams
+    :param perspective: (str) Whether the title should be written from the home team or the away team perspective.
+                         Only accepts values "home" and "away".
+    :return: String with the match title
+    """
+
+    # get relevant information of the match
+    df_match = df_matches[df_matches["matchId"] == match_id]
+    row = df_match[df_match["side"] == "home"].iloc[0]
+
+    # get the team names and the score
+    home_team_name = ed_help.get_team_name(df_teams, row["teamId"])
+    away_team_name = ed_help.get_team_name(df_teams, row["oppTeamId"])
+    home_score = row["score"]
+    away_score = row["oppScore"]
+
+    # depending on the perspective, compute the match title
+    if perspective == "away":
+        match_title = f"{away_team_name} @ {home_team_name} {away_score}:{home_score}"
+    else:
+        match_title = f"{home_team_name} - {away_team_name} {home_score}:{away_score}"
+
+    return match_title
+
+
+def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=None):
+    """
+    Function to prepare the passes for the position plot (see *create_position_plot*). It does so by aggregating the
+    accurate passes between any two players that appear in *df_stats*
+    :param df_events: (pd.DataFrane) Data frame with all events of e.g. the match. Notice that it should not only
+                       contain passing events but all events
+    :param df_stats: (pd.DataFrame) Data frame with player statistics (especially their centroids). Output of the
+                      *compute_statics* function can be used
+    :param show_top_k_percent: (int, optional) If not None, only the most important passes are returned in a way that
+                                *show_top_k_percent* of all passes are being displayed
+    :return: pd.DataFrame with passes between any two players. This data frame can be directly used in the
+             *create_position_plot* function
+    """
+    if df_stats["teamId"].nunique() > 1:
+        raise ValueError("Position plot should only contain 1 team")
+
+    team_id = df_stats["teamId"].unique()[0]
+
+    # get the number of passes between any two players
+    df_passes = ed_help.number_of_passes_between_players(df_events, team_id)
+
+    # only consider players that are plotted
+    players = df_stats["playerId"].unique()
+    df_passes = df_passes[df_passes["player1Id"].isin(players) &
+                          df_passes["player2Id"].isin(players)]
+
+    # get the centroid for each of the players
+    df_centroid = df_stats[["playerId", "centroidX", "centroidY"]].copy()
+
+    # add the position of player 1
+    df_pos_player1 = df_centroid.rename(columns={"playerId": "player1Id",
+                                                 "centroidX": "centroidX1",
+                                                 "centroidY": "centroidY1"})
+    df_pass_share = pd.merge(df_passes,
+                             df_pos_player1,
+                             on="player1Id")
+
+    # add the position of player 2
+    df_pos_player2 = df_centroid.rename(columns={"playerId": "player2Id",
+                                                 "centroidX": "centroidX2",
+                                                 "centroidY": "centroidY2"})
+    df_pass_share = pd.merge(df_pass_share,
+                             df_pos_player2,
+                             on="player2Id")
+
+    # compute the share of the passes for each player tuple
+    df_pass_share["sharePasses"] = df_pass_share["totalPasses"] / sum(df_pass_share["totalPasses"])
+
+    # return only those passes such that *show_top_k_percent* of all passes are being returned
+    if show_top_k_percent is not None:
+        df_pass_share.sort_values("sharePasses", inplace=True, ascending=False)
+        df_pass_share["cumShare"] = df_pass_share["sharePasses"].cumsum()
+        df_pass_share = df_pass_share[df_pass_share["cumShare"] * 100 < show_top_k_percent].copy()
+
+    return df_pass_share
+
+
+def create_position_plot(df_stats, title=None, dict_info=None, colour_kpi=None, colour_scale=None,
+                         df_passes=None, convex_hull=False):
+    """
+    Creation of the position plot, i.e. each player of the team is plotted on the field depending on their position.
+    :param df_stats: (pd.DataFrame) Data frame with stats on each player. Usually output of *compute_statistics* (see
+                      above)
+    :param title: (str, optional) Title for the plot
+    :param dict_info: (dict, optional) Defined what and how information should be shown when hovering over the players.
+                       If none, some default information will be shown
+    :param colour_kpi: (str, optional) Column name of *df_stats* that sets the colour of the markers
+    :param colour_scale: (tuple, optional) Tuple with the cmin and cmax of the colour scale
+    :param df_passes: (pd.DataFrame, optional) If not None, passes between the players will be displayed. Usually
+                       output of the *prepare_passes_for_position_plot* function
+    :param convex_hull: (bool) If True, a convex hull around all field players will be drawn
+    :return: go.Figure with the position plot
+    """
+    # Default dictionary for hover information
+    default_dict = {"Player name": {"values": "playerName"},
+                    "Total passes": {"values": "totalPasses", "display_type": ".0f"},
+                    "Accurate passes (in %)": {"values": "shareAccuratePasses", "display_type": ".1f"},
+                    "Total shots": {"values": "totalShots", "display_type": ".0f"},
+                    "Total goals": {"values": "totalGoals", "display_type": ".0f"},
+                    "Total duels": {"values": "totalDuels", "display_type": ".0f"},
+                    "Minutes played": {"values": "minutesPlayed", "display_type": ".0f"}
+                    }
+
+    df_stats = df_stats.copy()
+
+    # make sure the
+    df_stats["centroidY"] = 68 - df_stats["centroidY"]
+
+    field = create_empty_field(below=True)
+
+    # compute the convex hull and add it to the plot
+    ################################################
+    if convex_hull:
+        centroids = df_stats[df_stats["playerPosition"] != "GK"][["centroidX", "centroidY"]].to_numpy()
+        hull = scipy.spatial.ConvexHull(centroids)
+        convex_x, convex_y = centroids[hull.vertices, 0], centroids[hull.vertices, 1]
+
+        field.add_trace(go.Scatter(x=convex_x, y=convex_y,
+                                   fill="toself",
+                                   mode="lines",
+                                   showlegend=False,
+                                   fillcolor="black",
+                                   opacity=0.2,
+                                   name="",
+                                   line_color="black"))
+
+    # add passes between the players
+    ################################
+
+    # only add if the passes between the different players should be displayed
+    if df_passes is not None:
+        df_passes = df_passes.copy()
+
+        df_passes["centroidY1"] = 68 - df_passes["centroidY1"]
+        df_passes["centroidY2"] = 68 - df_passes["centroidY2"]
+        for _, row in df_passes.iterrows():
+            field.add_trace(go.Scatter(
+                showlegend=False,
+                x=[row["centroidX1"], row["centroidX2"]],
+                y=[row["centroidY1"], row["centroidY2"]],
+                mode='lines',
+                line=dict(color='red', width=50 * row["sharePasses"])))
+
+    # set the actual plot
+    ############################
+    field.add_trace(go.Scatter(
+        x=df_stats["centroidX"],
+        y=df_stats["centroidY"],
+        mode="markers+text",
+        text=df_stats["playerName"],
+        textposition="bottom center",
+        name="",
+        marker=dict(color="red", size=12)
+    ))
+
+    # create and add the hover information
+    ######################################
+    if dict_info is None:
+        dict_info = default_dict
+
+    if dict_info is not False:
+        hovertext = list()
+        for i, row in df_stats.iterrows():
+            text = ""
+            for key in dict_info.keys():
+                # make sure that the column really exists
+                if dict_info[key]["values"] not in row:
+                    continue
+
+                # check whether there is a display type or not
+                if "display_type" in dict_info[key].keys():
+                    text += "{}: {:^{display_type}}<br />".format(key, row[dict_info[key]["values"]],
+                                                                  display_type=dict_info[key]["display_type"])
+                else:
+                    text += "{}: {}<br />".format(key, row[dict_info[key]["values"]])
+            hovertext.append(text)
+
+        field.data[-1]["hovertemplate"] = hovertext
+
+    # update the colour of the markers
+    if colour_kpi is not None:
+        marker = dict(color=df_stats[colour_kpi],
+                      colorscale='Reds',
+                      showscale=True,
+                      size=12)
+
+        if colour_scale is not None:
+            marker["cmin"] = colour_scale[0]
+            marker["cmax"] = colour_scale[1]
+
+        field.data[-1]["marker"] = marker
+
+        # get a nice legend name based on the dict_info
+        nice_legend_name = [key for key in dict_info if dict_info[key]["values"] == colour_kpi]
+        if len(nice_legend_name) > 0:
+            legend_name = nice_legend_name[0]
+        else:
+            legend_name = colour_kpi
+
+        field.update_layout(
+            annotations=[
+                dict(
+                    x=1.07,
+                    y=1.03,
+                    align="right",
+                    valign="top",
+                    text=legend_name,
+                    showarrow=False,
+                    xref="paper",
+                    yref="paper",
+                    xanchor="center",
+                    yanchor="top"
+                )
+            ]
+        )
+
+    # add the title
+    ###############
+    if title is not None:
+        field.update_layout(
+            title={
+                'text': title,
+                'y': 0.9,
+                'x': 0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'})
+
+    return field
+
+
+def _hex_to_rgb(hex):
+    """
+    Helper function to convert hex colour into RGB vector
+    """
+    # Pass 16 to the integer function for change of base
+    return [int(hex[i:i+2], 16) for i in range(1,6,2)]
+
+
+def _rgb_to_hex(rgb):
+    """
+    Helper function to convert RGB colour vector into hex
+    """
+    rgb = [int(x) for x in rgb]
+    return "#"+"".join(["0{0:x}".format(v) if v < 16 else "{0:x}".format(v) for v in rgb])
+
+
+def colour_scale(start_hex, finish_hex, n=101):
+    """
+    Function returns a gradient list of *n* colors between
+    the two hex colors *start_hex* and *end_hex*
+    :param start_hex: (str) Six-digit color string of the start colour, e.g. #FFFFFF"
+    :param finish_hex: (str) Six-digit color string of the start colour, e.g. #FFFFFF"
+    :param n: (int) Number of colours to be produced
+    """
+    # Starting and ending colors in RGB form
+    s = _hex_to_rgb(start_hex)
+    f = _hex_to_rgb(finish_hex)
+    # Initilize a list of the output colors with the starting color
+    rgb_list = [s]
+    # Calcuate a color at each evenly spaced value of t from 1 to n
+    for t in range(1, n):
+        # Interpolate RGB vector for color at the current value of t
+        curr_vector = [
+          int(s[j] + (float(t)/(n-1))*(f[j]-s[j]))
+          for j in range(3)
+        ]
+        # Add it to our list of output colors
+        rgb_list.append(curr_vector)
+
+    return [_rgb_to_hex(RGB) for RGB in rgb_list]
+
+
+def prepare_pass_polar_plot(df, group_cols, length_scale_col, colour_col, colour_scale=None, centroids_xy=None):
+    """
+    Preparation function for the polar plot (see function *create_pass_polar_plot*. One polar will be drawn per unique
+    combination of *group_cols*
+    :param df: (pd.DataFrame) Data frame containing event data
+    :param group_cols: (list) Columns used for grouping the event, e.g. the grids from a heatmap, player, team, ...
+    :param length_scale_col: (str) Column that defines the length of the triangles in the polar plot
+    :param colour_col: (str) Column that defines the colour of the triangles in the polar plot
+    :param colour_scale: (tuple, optional) Tuple with the min and max values of the colour scale
+    :param centroids_xy: (list of arrays) Centroids of the different polars, e.g. the centroids of the grids of a
+                          heatmap
+    :return: pd.DataFrame containing all relevant information for using the *create_pass_polar_plot* function
+    """
+
+    df = df.copy()
+
+    # compute the length of each pass
+    df = ed_help.compute_length(df)
+
+    # compute the degree for each pass - notice that
+    #   0 degrees = forward
+    #   90 degrees = to the right
+    #   - 90 degrees = to the left
+    #   180 or -180 degrees = backwards
+    df["dx"] = df["posAfterXMeters"] - df["posBeforeXMeters"]
+    df["dy"] = df["posAfterYMeters"] - df["posBeforeYMeters"]
+    df["degree"] = df.apply(lambda row: math.degrees(math.atan2(row["dy"], row["dx"])), axis=1)
+
+    # put the degrees into 45 degree bins
+    bins = np.arange(-202.5, 203, 45)
+    labels = np.arange(-180, 181, 45)
+    df["degreeBin"] = pd.cut(df["degree"], bins=bins, labels=labels)
+    df["degreeBin"] = np.where(df["degreeBin"] == -180, 180, df["degreeBin"])
+
+    # group by group_cols and degree bins and compute relevant KPIs
+    df_group = df.groupby(group_cols + ["degreeBin"]). \
+        agg(totalPasses=("degreeBin", "size"),
+            totalAccuratePasses=("accurate", "sum"),
+            shareAccuratePasses=("accurate", "mean"),
+            meanLengthMeters=("lengthMeters", "mean")).reset_index()
+    df_group["shareAccuratePasses"] *= 100
+
+    # compute the scale factor (in [0,1]) which will define the length of each arrow in the polar graph
+    df_group["scaleFactor"] = df_group[length_scale_col] / df_group[length_scale_col].max()
+
+    # compute the centroid for each of the polar graphs
+    # in case the centroid is given externally
+    if centroids_xy is not None:
+
+        x_vals = centroids_xy[0]
+        y_vals = centroids_xy[1]
+
+        df_group["centroidX"] = df_group["posBeforeXMetersZone"].map(lambda i: x_vals[i])
+        df_group["centroidY"] = df_group["posBeforeYMetersZone"].map(lambda i: y_vals[i])
+
+    # or the centroid is already part of *df*
+    elif "centroidX" in df.columns and "centroidY" in df.columns:
+        df_centroid = df.groupby(group_cols).agg(centroidX=("centroidX", "min"),
+                                                 centroidY=("centoridY", "min"))
+
+        df_group = pd.merge(df_group, df_centroid, how="left", on=group_cols)
+
+    else:
+        raise ValueError("Centroids must either be part of *df* or given externally through *centroids_xy*")
+
+    # set the colour value (number between 0 and 100) depending on the colour kpi
+    df_group["colourCol"] = df_group[colour_col].copy()
+
+    if colour_scale is not None:
+        df_group["colourCol"] = df_group["colourCol"].clip(lower=colour_scale[0])
+        df_group["colourCol"] = df_group["colourCol"].clip(upper=colour_scale[1])
+
+    max_val = df_group["colourCol"].max()
+    min_val = df_group["colourCol"].min()
+
+    df_group["colourValue"] = (df_group["colourCol"] - min_val) / (max_val - min_val) * 100
+
+    return df_group
+
+
+def create_pass_polar_plot(df, dict_info=None, title_name=None):
+    """
+    Function creates the pass polar plot which indicates the direction in which passes where being made. It also
+    conveys other information by using size and colour. Before running this function one usually needs to run the
+    *prepare_pass_polar_plot* function
+    :param df: (pd.DataFrame) Contains all relevant data; usually the output of the *prepare_pass_polar_plot* function
+    :param dict_info: (dict, optional) Defined what and how information should be shown when hovering over the players.
+    :param title_name: (str) Title of the graph
+    :return: go.Figure containing the pass polar plot
+    """
+
+    # create the hover text - there will be hover text for each triangle
+    hovertext = list()
+    for i, row in df.iterrows():
+        text = ""
+        if dict_info is None:
+            continue
+        for key in dict_info.keys():
+            # make sure that the column really exists
+            if dict_info[key]["values"] not in row:
+                continue
+
+            # check whether there is a display type or not
+            if "display_type" in dict_info[key].keys():
+                text += "{}: {:^{display_type}}<br />".format(key, row[dict_info[key]["values"]],
+                                                              display_type=dict_info[key]["display_type"])
+            else:
+                text += "{}: {}<br />".format(key, row[dict_info[key]["values"]])
+        hovertext.append(text)
+
+    # create a continuous colour scale from white to red - will be the colour of the triangles
+    white = "#FFFFFF"
+    red = "#FF0000"
+    colours = colour_scale(white, red, n=101)
+
+    # create the empty field
+    fig = create_empty_field(below=True)
+
+    # loop through all the different centroid / degree combinations and draw the triangles
+    for i, row in df.iterrows():
+
+        x_center = row["centroidX"]
+        y_center = row["centroidY"]
+
+        # get the length in x and y direction
+        y_length = 10 * row["scaleFactor"]
+        x_length = 3 * (y_length / 10)
+
+        # set up the triangle
+        tri_x = [-x_length/2, 0, x_length/2, -x_length/2]
+        tri_y = [-y_length, 0, -y_length, -y_length]
+
+        # rotate the triangle according to the degree
+        rot_x, rot_y = gen_help.rotate_vectors(tri_x, tri_y, math.radians(row["degreeBin"] - 90))
+
+        # add the center point to end up in the centroid
+        x_vals = x_center + np.array(rot_x)
+        y_vals = y_center + np.array(rot_y)
+
+        # add the triangles with the hover text as traces
+        fig.add_trace(go.Scatter(x=x_vals,
+                                 y=y_vals,
+                                 showlegend=False,
+                                 mode="lines",
+                                 fill="toself",
+                                 fillcolor=colours[int(row["colourValue"])],
+                                 text=hovertext[i],
+                                 hoverinfo="text",
+                                 line_color=colours[int(row["colourValue"])]))
+
+    # add all the black dots in the middle of the polar plots
+    df_dots = df[["centroidX", "centroidY"]].drop_duplicates()
+
+    for i, row in df_dots.iterrows():
+        fig.add_trace(go.Scatter(x=[row["centroidX"]],
+                                 y=[row["centroidY"]],
+                                 fillcolor="black",
+                                 line_color="black",
+                                 showlegend=False,
+                                 hoverinfo="skip",
+                                 marker=dict(size=10)))
+
+    # add a title to the chart
     if title_name is not None:
         fig.update_layout(
             title={
