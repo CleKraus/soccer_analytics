@@ -28,7 +28,11 @@ and run rudimentary exploratory analysis using pandas-profiling
     - Use bar plots in plotly
     - Visualize events on a soccer field through graphs and animations
     - Draw heatmaps on a soccer field
-  
+3. [Passing analysis](notebooks/passing_analysis.ipynb): We continue our journey but looking at passes between players and analyze one match in more detail. Technically, we learn how to 
+    use the helper function to:
+    - Compute statistics efficiently
+    - Draw position plots of players
+    - Visualize passing lines and passing zones
 
 ## Installation
 If you are new to Python and soccer analytics I would recommend to you to download [Anaconda distribution](https://www.anaconda.com/distribution/#download-section) and follow 
