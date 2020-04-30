@@ -7,6 +7,13 @@ Metrica tracking data: https://github.com/metrica-sports/sample-data
 
 Articles & Notebooks
 --------------------
+Pitch control model:
+	https://www.youtube.com/watch?v=5X1cSehLg6s
+	https://www.youtube.com/watch?v=X9PrwPyolyU
+
+Tracking data:
+	https://github.com/Friends-of-Tracking-Data-FoTD/LaurieOnTracking
+
 General statistics:
 	https://www.kaggle.com/ahmedyoussef/the-beautiful-game-analysis-of-football-events
 
