@@ -32,40 +32,61 @@ def get_team_view(matches, team):
 
 
 def get_all_formations(matches):
+    """
+    Function to compute a data frame with the formation for all the matches in *matches*
+    :param matches: (dict) Dictionary containing all matches and the formations
+    :return: pd.DataFrame containing all formations of all matches
+    """
+
     lst_formations = list()
     for match in matches:
 
         match_id = match["wyId"]
 
+        # loop through the two teams
         for team in [0, 1]:
             team = match["teamsData"][list(match["teamsData"])[team]]
             team_id = team["teamId"]
 
+            # get all players that started on the bench
             player_bench = [player["playerId"] for player in team["formation"]["bench"]]
             df_bench = pd.DataFrame()
             df_bench["playerId"] = player_bench
             df_bench["lineup"] = 0
 
+            # get all players that were in the lineup
             player_lineup = [player["playerId"] for player in team["formation"]["lineup"]]
             df_lineup = pd.DataFrame()
             df_lineup["playerId"] = player_lineup
             df_lineup["lineup"] = 1
 
-            player_in = [sub["playerIn"] for sub in team["formation"]["substitutions"]]
-            player_out = [sub["playerOut"] for sub in team["formation"]["substitutions"]]
-            sub_minute = [sub["minute"] for sub in team["formation"]["substitutions"]]
+            # in case there were no substitutions in the match
+            if team["formation"]["substitutions"] == "null":
+                player_in = []
+                player_out = []
+                sub_minute = []
+            # if there were substitutions
+            else:
+                player_in = [sub["playerIn"] for sub in team["formation"]["substitutions"]]
+                player_out = [sub["playerOut"] for sub in team["formation"]["substitutions"]]
+                sub_minute = [sub["minute"] for sub in team["formation"]["substitutions"]]
 
+            # build a data frame who and when was substituted in
             df_player_in = pd.DataFrame()
             df_player_in["playerId"] = player_in
             df_player_in["substituteIn"] = sub_minute
 
+            # build a data frame who and when was substituted out
             df_player_out = pd.DataFrame()
             df_player_out["playerId"] = player_out
             df_player_out["substituteOut"] = sub_minute
 
+            # get the formation by concatenating lineup and bench players
             df_formation = pd.concat([df_lineup, df_bench], axis=0)
             df_formation["matchId"] = match_id
             df_formation["teamId"] = team_id
+
+            # add information about substitutions
             df_formation = pd.merge(df_formation, df_player_in, how="left")
             df_formation = pd.merge(df_formation, df_player_out, how="left")
 
@@ -127,4 +148,4 @@ def cleanse_wyscout_match_data(country):
 
 if __name__ == "__main__":
 
-    cleanse_wyscout_match_data("Germany")
+    cleanse_wyscout_match_data("France")
