@@ -7,8 +7,6 @@ import ruamel.yaml
 import scipy.spatial
 import math
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from plotly.colors import DEFAULT_PLOTLY_COLORS
 
 import helper.event_data as ed_help
 import helper.general as gen_help
@@ -611,149 +609,6 @@ def create_event_animation(df, total_seconds, fps=10,
     return fig
 
 
-def create_univariate_variable_graph(df, col, target_col, y1_axis_name, y2_axis_name, binned_cols=False,
-                                     title_name=None):
-    """
-    Function creates a plotly figure showing the distribution over the different values in column *col* as well as the share
-    of positives for the *target_col* per value in *col*.
-
-    :param df: (pd.DataFrame) Data frame with all relevant data
-    :param col: (str) Column for which the different values should be analyzed
-    :param target_col: (str) Column with the target, e.g. "Goal", "Successful pass", ...
-    :param y1_axis_name: (str) String to be displayed on left y-axis
-    :param y2_axis_name: (str) String to be displayed on right y-axis
-    :param binned_cols: (bool, default=False) Set to true of columns were manually binned and x-axis tick names should
-                                              therefore be updated
-    :param title_name: (str) Title of the plotly plot
-    :return: go.Figure containing the univariate variable graph
-    """
-    # if columns were manually binned before, we show the x-axis ticks like ("<3", "3-6", ">=6")
-    if binned_cols:
-        diff_vals = sorted(df[col].unique())
-        lst_x_title = list()
-        for i in range(len(diff_vals)):
-            if i == 0:
-                lst_x_title.append(f"<{diff_vals[i + 1]}")
-            elif i == len(diff_vals) - 1:
-                lst_x_title.append(f">={diff_vals[i]}")
-            else:
-                lst_x_title.append(f"{diff_vals[i]} - {diff_vals[i + 1]}")
-
-    # compute the share of observations for each group and the probability of the target
-    df_group = df.groupby(col).agg(total_count=(col, "count"),
-                                   total_target=(target_col, "sum")).reset_index()
-    df_group["share"] = df_group["total_count"] / len(df) * 100
-    df_group["share_target"] = df_group["total_target"] / df_group["total_count"] * 100
-
-    # create the plotly figure
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-    # right y-axis corresponds to the share of observations per group
-    fig.add_trace(
-        go.Bar(
-            x=df_group[col],
-            y=df_group["share"],
-            name=y2_axis_name,
-            marker=dict(color=DEFAULT_PLOTLY_COLORS[0])
-        ))
-
-    # left y-axis corresponds to the probability of the target for each group
-    fig.add_trace(
-        go.Scatter(
-            x=df_group[col],
-            y=df_group["share_target"],
-            name=y1_axis_name,
-            marker=dict(color=DEFAULT_PLOTLY_COLORS[1])
-        ), secondary_y=True)
-
-    if title_name is None:
-        title_name = col
-
-    # update the layout of the figure
-    fig.update_layout(
-        title=title_name,
-        hovermode=False,
-        yaxis=dict(
-            title=y1_axis_name,
-            titlefont_size=16,
-            tickfont_size=14,
-            rangemode="tozero"
-        ),
-        yaxis2=dict(
-            title=y2_axis_name,
-            titlefont_size=16,
-            tickfont_size=14,
-            rangemode="tozero"
-        ),
-    )
-
-    # update the x-axis title in case of a binned column
-    if binned_cols:
-        fig.data[0]["x"] = np.array(lst_x_title)
-        fig.data[1]["x"] = np.array(lst_x_title)
-
-    return fig
-
-
-def combine_univariate_variable_graphs(figures, cols, rows, shared_axis=False):
-    titles = []
-    for tmp_fig in figures:
-        titles.append(tmp_fig["layout"]["title"]["text"])
-
-    if shared_axis:
-        fig = make_subplots(
-            rows=rows, cols=cols, subplot_titles=titles, shared_yaxes=True)
-    else:
-        fig = make_subplots(
-            rows=rows, cols=cols, subplot_titles=titles, shared_yaxes=True)
-
-        # add the data to the plots
-    for row in range(rows):
-        for col in range(cols):
-            for fig_data in figures[row * cols + col]["data"]:
-                fig.add_trace(fig_data, row=row + 1, col=col + 1)
-
-    # add name to left y-axis
-    for i, tmp_fig in enumerate(figures):
-        axis_name = "yaxis" if i == 0 else "yaxis" + str(i + 1)
-        fig.layout[axis_name]["title"] = tmp_fig["layout"]["yaxis"]["title"]["text"]
-        fig.layout[axis_name]["tickfont"]["size"] = 8
-        fig.layout[axis_name]["title"]["font"]["size"] = 10
-
-    # add name to right y-axis
-    for i, tmp_fig in enumerate(figures):
-        axis_name = "yaxis" + str(len(figures) + 1 + i)
-        anchor_name = "x" if i == 0 else "x" + str(i + 1)
-        overlay_name = "y" if i == 0 else "y" + str(i + 1)
-        fig.layout[axis_name] = tmp_fig["layout"]["yaxis2"]
-        fig.layout[axis_name]["anchor"] = anchor_name
-        fig.layout[axis_name]["overlaying"] = overlay_name
-        fig.layout[axis_name]["tickfont"]["size"] = 8
-        fig.layout[axis_name]["title"]["font"]["size"] = 10
-        fig["data"][(2 * i) + 1].update(yaxis="y" + str(len(figures) + 1 + i))
-
-    if shared_axis:
-        for i, tmp_fig in enumerate(figures):
-            # make sure the right axis match
-            if i > 0:
-                axis_name = "yaxis" + str(len(figures) + 1 + i)
-                fig["layout"][axis_name]["matches"] = "y" + str(len(figures) + 1)
-
-            # delete unneeded titles on right axis
-            if i % cols != (cols - 1):
-                axis_name = "yaxis" + str(len(figures) + 1 + i)
-                fig["layout"][axis_name]["title"] = None
-
-            # delete unneed titles on left axis
-            if i % cols != 0:
-                axis_name = "yaxis" + str(i + 1)
-                fig["layout"][axis_name]["title"] = None
-
-    fig.update_layout(showlegend=False, hovermode=False)
-
-    return fig
-
-
 def _calculate_bucket_for_position(series, nb_buckets, min_pos_val, max_pos_val):
     buckets = np.arange(min_pos_val, max_pos_val + 0.001, max_pos_val / nb_buckets)
 
@@ -768,18 +623,20 @@ def _calculate_bucket_for_position(series, nb_buckets, min_pos_val, max_pos_val)
     return pd.cut(series, buckets, labels=False, include_lowest=True), df_buckets
 
 
-def prepare_heatmap(df, col_x, col_y, nb_buckets_x, nb_buckets_y, min_val_x=0, max_val_x=105, min_val_y=0,
-                    max_val_y=68, return_df=False):
-
+def prepare_heatmap(df, col_x, col_y, nb_buckets_x, nb_buckets_y, agg_type="count", agg_col=None, return_df=False,
+                    min_val_x=0, max_val_x=105, min_val_y=0, max_val_y=68):
     df = df.copy()
 
     df[col_x + "Zone"], df_lookup_x_buckets = _calculate_bucket_for_position(df[col_x], nb_buckets_x, min_val_x,
-                                                                               max_val_x)
+                                                                             max_val_x)
     df[col_y + "Zone"], df_lookup_y_buckets = _calculate_bucket_for_position(df[col_y], nb_buckets_y, min_val_y,
-                                                                               max_val_y)
+                                                                             max_val_y)
+
+    if agg_col is None:
+        agg_col = col_x + "Zone"
 
     df_pos = df.groupby([col_x + "Zone", col_y + "Zone"]). \
-        agg(nbEvents=(col_x + "Zone", "count")).reset_index()
+        agg(aggVal=(agg_col, agg_type)).reset_index()
 
     df_all_pos = pd.DataFrame([(x, y) for x in df_lookup_x_buckets["id"] for y in df_lookup_y_buckets["id"]],
                               columns=[col_x + "Zone", col_y + "Zone"])
@@ -791,7 +648,7 @@ def prepare_heatmap(df, col_x, col_y, nb_buckets_x, nb_buckets_y, min_val_x=0, m
     df_all_pos = pd.merge(df_all_pos, df_lookup_y_buckets[[col_y + "Zone", col_y + "ZoneMean"]], how="left")
 
     df_pos = pd.merge(df_all_pos, df_pos, how="left").fillna(0)
-    df_img = df_pos.pivot(col_y + "ZoneMean", col_x + "ZoneMean", "nbEvents")
+    df_img = df_pos.pivot(col_y + "ZoneMean", col_x + "ZoneMean", "aggVal")
 
     x = list(df_img.columns)
     y = [max_val_y - x for x in df_img.index]
