@@ -4,11 +4,14 @@
 import os
 import ruamel.yaml
 import pandas as pd
+import numpy as np
 import json
 
+import helper.machine_learning as ml_help
 
 PROJECT_NAME = "soccer_analytics"
 CONFIG_NAME = "config.yml"
+ALL_LEAGUES = ["germany", "italy", "england", "spain", "france"]
 
 
 def _update_project_path():
@@ -125,12 +128,21 @@ def read_event_data(league, notebook=None):
     """
     Reads the event data of the specified league. If *notebook* is set and defined below, only the required subset
     of the event data is returned
-    :param league: (str) League for which the event data should be read
+    :param league: (str) League for which the event data should be read; if "all", all leagues are returned
     :param notebook: (str, optional) If specified, only the subset of the event data required for the *notebook* is
                       returned
     :return: pd.DataFrame with the event data
     """
-    df = read_data("event_data", league)
+
+    # if league is specified, read events only for this league
+    if league != "all":
+        df = read_data("event_data", league)
+    # else read data for all leagues
+    else:
+        lst_events = list()
+        for league in ALL_LEAGUES:
+            lst_events.append(read_data("event_data", league))
+        df = pd.concat(lst_events)
 
     # only return the columns needed for the goal kick analysis
     if notebook == "goal_kick_analysis":
@@ -139,6 +151,23 @@ def read_event_data(league, notebook=None):
                 "homeTeamId", "awayTeamId"]
 
         df = df[cols].copy()
+
+    elif notebook == "expected_goal_model":
+
+        # get one variable out the the three "body part" columns
+        df = ml_help.from_dummy(df, ["leftFoot", "rightFoot", "head/body"], "bodyPartShot")
+
+        # encode the column with a number
+        dict_body_part = {"Unknown": np.nan,
+                          "leftFoot": 1,
+                          "head/body": 2,
+                          "rightFoot": 3}
+        df["bodyPartShotCode"] = df["bodyPartShot"].map(lambda x: dict_body_part[x])
+
+        # drop columns that are not needed in this notebook
+        drop_cols = ["accurate", "notAccurate", "assist", "keyPass", "direct", "indirect",
+                     "dangerousBallLost", "leftFoot", "rightFoot", "head/body"]
+        df.drop(drop_cols, axis=1, inplace=True)
 
     return df
 
@@ -153,7 +182,15 @@ def read_team_data(league, notebook=None):
     :return: pd.DataFrame with the team data
     """
 
-    df = read_data("team_data", league)
+    # if league is specified, read team data only for this league
+    if league != "all":
+        df = read_data("team_data", league)
+    # else read data for all leagues
+    else:
+        lst_teams = list()
+        for league in ALL_LEAGUES:
+            lst_teams.append(read_data("team_data", league))
+        df = pd.concat(lst_teams)
 
     return df
 
@@ -168,7 +205,15 @@ def read_match_data(league, notebook=None):
     :return: pd.DataFrame with the team data
     """
 
-    df = read_data("match_data", league)
+    # if league is specified, read match data only for this league
+    if league != "all":
+        df = read_data("match_data", league)
+    # else read data for all leagues
+    else:
+        lst_matches = list()
+        for league in ALL_LEAGUES:
+            lst_matches.append(read_data("match_data", league))
+        df = pd.concat(lst_matches)
 
     return df
 
@@ -183,7 +228,15 @@ def read_formation_data(league, notebook=None):
     :return: pd.DataFrame with the formation data
     """
 
-    df = read_data("formation_data", league)
+    # if league is specified, read match data only for this league
+    if league != "all":
+        df = read_data("formation_data", league)
+    # else read data for all leagues
+    else:
+        lst_formations = list()
+        for league in ALL_LEAGUES:
+            lst_formations.append(read_data("formation_data", league))
+        df = pd.concat(lst_formations)
 
     return df
 
