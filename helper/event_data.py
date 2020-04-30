@@ -416,3 +416,47 @@ def number_of_passes_between_players(df_events, team_id):
         agg(totalPasses=("player1Id", "count")).reset_index()
 
     return df_passes
+
+
+def compute_current_standing(df_events):
+    """
+    Compute the current standing of the match(es) for each event
+    :param df_events: (pd.DataFrame) Data frame containing all events (or at least all goals and own goals)
+    :return: *df_events* containing 3 additional columns: currentGoalsHomeTeam, currentGoalsAwayTeam and the difference
+    in score from the perspective of the team of the event
+    """
+    df = df_events.copy()
+
+    df.sort_values(["matchId", "matchPeriod", "eventSec"], inplace=True)
+
+    # indicate for each event whether the home team scored a goal (no own goals)
+    df["goalHomeTeam"] = df["goal"] * (df["eventName"].isin(["Shot", "Free Kick"])) * \
+                         (df["teamId"] == df["homeTeamId"])
+
+    # indicate for each event whether the away team scored a goal (no own goals)
+    df["goalAwayTeam"] = df["goal"] * (df["eventName"].isin(["Shot", "Free Kick"])) * \
+                         (df["teamId"] == df["awayTeamId"])
+
+    # indicate for each event whether it was an own goal
+    df["ownGoalHomeTeam"] = df["ownGoal"] * (df["teamId"] == df["homeTeamId"])
+    df["ownGoalAwayTeam"] = df["ownGoal"] * (df["teamId"] == df["awayTeamId"])
+
+    # indicate for each event whether a goal happened
+    df["goalHomeTeam"] = df["goalHomeTeam"] + df["ownGoalAwayTeam"]
+    df["goalAwayTeam"] = df["goalAwayTeam"] + df["ownGoalHomeTeam"]
+
+    # cumulate the goals for each team up to the current event
+    df["currentGoalsHomeTeam"] = df.groupby("matchId")["goalHomeTeam"].cumsum()
+    df["currentGoalsAwayTeam"] = df.groupby("matchId")["goalAwayTeam"].cumsum()
+
+    # make sure the current event is not counted (we want to have the score before the event)
+    df["currentGoalsHomeTeam"] = df["currentGoalsHomeTeam"] - df["goalHomeTeam"]
+    df["currentGoalsAwayTeam"] = df["currentGoalsAwayTeam"] - df["goalAwayTeam"]
+
+    # get the relative score from the perspective of the team of the event
+    df["currentRelativeScore"] = np.where(df["teamId"] == df["homeTeamId"],
+                                          df["currentGoalsHomeTeam"] - df["currentGoalsAwayTeam"],
+                                          df["currentGoalsAwayTeam"] - df["currentGoalsHomeTeam"])
+
+    df.drop(["goalHomeTeam", "goalAwayTeam", "ownGoalHomeTeam", "ownGoalAwayTeam"], axis=1, inplace=True)
+    return df
