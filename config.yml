@@ -14,6 +14,10 @@ data:
   event_data: events_xxxxx.parquet
   formation_data: formations_xxxxx.parquet
 
+model:
+  path: models
+  expected_goals_logreg: expected_goals_logistic_regression.sav
+
 raw_data_wyscout:
   path: data\raw_data\wyscout_data
   team_data: teams.json
