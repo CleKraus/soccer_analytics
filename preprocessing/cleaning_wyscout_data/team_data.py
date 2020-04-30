@@ -50,7 +50,7 @@ def cleanse_wyscout_team_data(country):
     df_teams = pd.merge(df_teams, df_table, on="teamId", how="left")
 
     df_teams.sort_values("position", inplace=True)
-    df_teams = df_teams[["position", "teamId", "teamName", "matches", "goals", "counterGoals",
+    df_teams = df_teams[["position", "teamId", "teamName", "matches", "goals", "concededGoals",
                          "goalsDiff", "points"]].copy()
 
     io.write_data(df_teams, data_type="team_data", league=country.lower())

@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
     - Spain 
     - France
 """
-countries = ["Germany"]
+countries = ["England"]
 
 cleanse_wyscout_player_data()
 
