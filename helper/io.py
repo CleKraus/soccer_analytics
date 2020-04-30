@@ -6,6 +6,7 @@ import ruamel.yaml
 import pandas as pd
 import numpy as np
 import json
+import pickle
 
 import helper.machine_learning as ml_help
 
@@ -255,11 +256,34 @@ def read_player_data(notebook=None):
     return df
 
 
+def read_model(model_name):
+    """
+    Helper function to read saved models.
+    :param model_name: (str) Needs to match the model name in the config file
+    :return: Trained machine-learning model
+    """
+
+    # read the config file
+    with open(_get_config_file(), "r", encoding="utf-8") as f:
+        config = ruamel.yaml.YAML().load(f)
+
+    # extract the project path
+    project_path = config["general"]["project_path"]
+    folder = config["model"]["path"]
+    model_name = config["model"][model_name]
+
+    # read the model
+    with open(os.path.join(project_path, folder, model_name), "rb") as f:
+        model = pickle.load(f)
+
+    return model
+
+
 def write_data(df, data_type, league=None, data_folder=None):
     """
     Function to save *df* in the path specified in the config file under "data" (or *data_folder* if specified)
     :param df: (pd.DataFrame) Data frame to write as parquet file
-    :param data_type: (str) Type of data (event, match, player, ...) to be read. Needs to exactly match the name in
+    :param data_type: (str) Type of data (event, match, player, ...) to be written. Needs to exactly match the name in
                       the config file
     :param league: (str) League to be read in case there are different files (e.g. Germany, Englang, ...)
     :param data_folder: (str) In case any other data folder than "data" from the config file is required, it should be
@@ -298,3 +322,24 @@ def write_data(df, data_type, league=None, data_folder=None):
     full_path = os.path.join(project_path, config[data_folder]["path"], fname)
 
     df.to_parquet(full_path)
+
+
+def save_model(model, model_name):
+    """
+    Helper function to save models as pickle files.
+    :param model: Machine-learning model to be saved
+    :param model_name: (str) Needs to match the model name in the config file
+    :return: None
+    """
+
+    # read the config file
+    with open(_get_config_file(), "r", encoding="utf-8") as f:
+        config = ruamel.yaml.YAML().load(f)
+
+    # extract the project path
+    project_path = config["general"]["project_path"]
+    folder = config["model"]["path"]
+    model_name = config["model"][model_name]
+
+    with open(os.path.join(project_path, folder, model_name), "wb") as f:
+        pickle.dump(model, f)
