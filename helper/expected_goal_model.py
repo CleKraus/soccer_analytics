@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
 
+# import packages
+from abc import ABC, abstractmethod
 import math
 import pandas as pd
 import numpy as np
@@ -6,63 +9,41 @@ import numpy as np
 import helper.io as io
 
 
-class ExpectedGoalModel:
+class ExpectedGoalModel(ABC):
+    """
+    Base class for the expected goal model. Purpose of the ExpectedGoalModels is to combine the feature creation,
+    transformation and the prediction using pre-trained and finalized models in one class. Notice that, on purpose,
+    there is no fitting function as this is thought to be only for predictions using pre-trained models.
+    """
 
     def __init__(self, debug_mode=True):
 
-        if debug_mode:
-            df_events = io.read_event_data("all", notebook="expected_goal_model")
-            self.df_events = self._compute_event_before(df_events)
-        else:
-            self.df_events = None
-
         self.debug_mode = debug_mode
+        self.model = None
+        self.model_name = None
+        self.features = None
 
-        self.features = ["distToGoalLine", "distToCenter", "weakFoot", "counterAttack", "corner", "smartPass",
-                         "duel", "shotBefore", "angleClip", "frontOfGoal", "headDistToGoalLine"]
-
-        self.feature_measures = {'distToGoalLine': {'mean': 15.930207612456748, 'std': 8.520058996794551},
-                                 'distToCenter': {'mean': 7.786845938375349, 'std': 5.2201237665066},
-                                 'weakFoot': {'mean': 0.18866370077442743, 'std': 0.3912476878714778},
-                                 'counterAttack': {'mean': 0.055692865381446695, 'std': 0.22933142674397106},
-                                 'corner': {'mean': 0.023924864063272367, 'std': 0.15281765125037938},
-                                 'smartPass': {'mean': 0.04264293952875268, 'std': 0.20205411311643012},
-                                 'duel': {'mean': 0.36875926841324763, 'std': 0.48247646741037054},
-                                 'shotBefore': {'mean': 0.021057834898665348, 'std': 0.14357953142714186},
-                                 'angleClip': {'mean': 36.94625627632563, 'std': 5.8718678088086165},
-                                 'frontOfGoal': {'mean': 0.01888284725654968, 'std': 0.13611354039183185},
-                                 'headDistToGoalLine': {'mean': 1.440968858131488, 'std': 3.7213713754703233}}
-
-    @staticmethod
-    def _compute_event_before(df_events):
-        # for each event, compute the event, subevent and performing team before this event
-        df = df_events.copy()
-
-        df["eventBefore"] = df.groupby(["matchId", "matchPeriod"])["eventName"].shift(1)
-        df["subEventBefore"] = df.groupby(["matchId", "matchPeriod"])["subEventName"].shift(1)
-        df["teamBefore"] = df.groupby(["matchId", "matchPeriod"])["teamId"].shift(1)
-
-        return df
-
-    @staticmethod
-    def _transform_body_part_shot(row):
+    @abstractmethod
+    def predict(self, X):
         """
-        Helper function to identify whether a shot was taken with the strong or the weak foot.
+        Predict target for features X. If no model was fitted in this instance, a default version should be read.
         """
-        if row["bodyPartShot"] == "head/body":
-            return "head/body"
-        elif row["bodyPartShot"] == "rightFoot":
-            if row["playerStrongFoot"] == "left":
-                return "weakFoot"
-            else:
-                return "strongFoot"
-        elif row["bodyPartShot"] == "leftFoot":
-            if row["playerStrongFoot"] == "right":
-                return "weakFoot"
-            else:
-                return "strongFoot"
-        else:
-            raise ValueError(f"Body part *{row['bodyPartShot']}* unknown.")
+        pass
+
+    @abstractmethod
+    def predict_proba(self, X):
+        """
+        Predict target probabilities for features X. If no model was fitted in this instance, a default version
+        should be read
+        """
+        pass
+
+    @abstractmethod
+    def create_features(self, df, overwrite=True):
+        pass
+
+    # General functions to compute features
+    #######################################
 
     @staticmethod
     def _add_feature_distance_goal_line(df):
@@ -166,7 +147,86 @@ class ExpectedGoalModel:
         df["headDistToGoalLine"] = df["head/body"] * df["distToGoalLine"]
         return df
 
+    @staticmethod
+    def _compute_event_before(df_events):
+        # for each event, compute the event, subevent and performing team before this event
+        df = df_events.copy()
+
+        df["eventBefore"] = df.groupby(["matchId", "matchPeriod"])["eventName"].shift(1)
+        df["subEventBefore"] = df.groupby(["matchId", "matchPeriod"])["subEventName"].shift(1)
+        df["teamBefore"] = df.groupby(["matchId", "matchPeriod"])["teamId"].shift(1)
+
+        return df
+
+    @staticmethod
+    def _transform_body_part_shot(row):
+        """
+        Helper function to identify whether a shot was taken with the strong or the weak foot.
+        """
+        if row["bodyPartShot"] == "head/body":
+            return "head/body"
+        elif row["bodyPartShot"] == "rightFoot":
+            if row["playerStrongFoot"] == "left":
+                return "weakFoot"
+            else:
+                return "strongFoot"
+        elif row["bodyPartShot"] == "leftFoot":
+            if row["playerStrongFoot"] == "right":
+                return "weakFoot"
+            else:
+                return "strongFoot"
+        else:
+            raise ValueError(f"Body part *{row['bodyPartShot']}* unknown.")
+
+
+class ExpectedGoalModelLogistic(ExpectedGoalModel):
+    """
+    Expected goal model using logistic regression.
+    """
+
+    def __init__(self, debug_mode=True):
+
+        super().__init__(debug_mode)
+
+        # if debug mode, read all the event data and extract the events before
+        if self.debug_mode:
+            df_events = io.read_event_data("all", notebook="expected_goal_model")
+            self.df_events = self._compute_event_before(df_events)
+        else:
+            self.df_events = None
+
+        # trained model will be saved here
+        self.model = None
+
+        # model name for reading
+        self.model_name = "expected_goals_logreg"
+
+        # features used in the model
+        self.features = ["distToGoalLine", "distToCenter", "weakFoot", "counterAttack", "corner", "smartPass",
+                         "duel", "shotBefore", "angleClip", "frontOfGoal", "headDistToGoalLine"]
+
+        # mean values and standard deviations for this model
+        self.feature_measures = {'distToGoalLine': {'mean': 15.930207612456748, 'std': 8.520058996794551},
+                                 'distToCenter': {'mean': 7.786845938375349, 'std': 5.2201237665066},
+                                 'weakFoot': {'mean': 0.18866370077442743, 'std': 0.3912476878714778},
+                                 'counterAttack': {'mean': 0.055692865381446695, 'std': 0.22933142674397106},
+                                 'corner': {'mean': 0.023924864063272367, 'std': 0.15281765125037938},
+                                 'smartPass': {'mean': 0.04264293952875268, 'std': 0.20205411311643012},
+                                 'duel': {'mean': 0.36875926841324763, 'std': 0.48247646741037054},
+                                 'shotBefore': {'mean': 0.021057834898665348, 'std': 0.14357953142714186},
+                                 'angleClip': {'mean': 36.94625627632563, 'std': 5.8718678088086165},
+                                 'frontOfGoal': {'mean': 0.01888284725654968, 'std': 0.13611354039183185},
+                                 'headDistToGoalLine': {'mean': 1.440968858131488, 'std': 3.7213713754703233}}
+
     def create_features(self, df, overwrite=True):
+        """
+        Pipeline to create and transform features from raw data. Notice that normalization is not part of this pipeline,
+        but can be performed through a separate *normalize_features* function.
+        :param df: (pd.DataFrame) Data frame with raw data
+        :param overwrite: (bool) If False, only features that do not exist yet will be computed. If True, all features
+                           are created again.
+        :return: pd.DataFrame containing all features needed for the machine learning model
+        """
 
         df = df.copy()
 
@@ -214,6 +274,15 @@ class ExpectedGoalModel:
         return df
 
     def normalize_features(self, df, features=None, feature_measures=None):
+        """
+        Perform standard normalization, i.e. (x-mu)/sigma for all features. If *features* and *feature_measures* are
+        None, the pre-defined default features will be used.
+        :param df: (pd.DataFrame) Data frame containing non-normalized features
+        :param features: (list) Features to be normalized. If None, pre-defined default features will be used
+        :param feature_measures: (dict) Mean and standard deviation of the features. If None, pre-defined default
+                                  feature measure will be used
+        :return: pd.DataFrame with standard normalized features
+        """
 
         if features is not None:
             self.features = features
@@ -224,7 +293,27 @@ class ExpectedGoalModel:
         df_normal = df[self.features].copy()
 
         for feat in self.features:
-            df_normal[feat] = (df_normal[feat] - self.feature_measures[feat]["mean"]) / self.feature_measures[feat][
-                "std"]
+            df_normal[feat] = (df_normal[feat] - self.feature_measures[feat]["mean"]) / self.feature_measures[feat]["std"]
 
         return df_normal
+
+    def predict(self, X):
+        """
+        Predict target for features X. If no model was fitted in this instance, the saved version of the model will
+        be read.
+        """
+
+        if self.model is None:
+            self.model = io.read_model(self.model_name)
+
+        return self.model.predict(X)
+
+    def predict_proba(self, X):
+        """
+        Predict target probabilities for features X. If no model was fitted in this instance, the saved version
+        of the model will be read.
+        """
+        if self.model is None:
+            self.model = io.read_model(self.model_name)
+
+        return self.model.predict_proba(X)
