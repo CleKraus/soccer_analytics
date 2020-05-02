@@ -1,11 +1,11 @@
 
-import helper.io as help_io
-import pandas
+import helper.test as test_help
+import ruamel.yaml
 
 
-def test_read_team_data():
-    league = "germany"
-    df = help_io.read_team_data(league)
-    assert type(df) == pandas.core.frame.DataFrame
+def test_read_config():
 
+    config = test_help._get_config_file()
+
+    assert type(config) == ruamel.yaml.comments.CommentedMap
 
