@@ -16,7 +16,7 @@ def _get_config_file():
     """
 
     base_path = Path(__file__).parent
-    file_path = (base_path / "../config.yml").resolve()
+    file_path = (base_path / os.path.join("..", CONFIG_NAME)).resolve()
 
     with open(file_path, "r", encoding="utf-8") as f:
         config = ruamel.yaml.YAML().load(f)

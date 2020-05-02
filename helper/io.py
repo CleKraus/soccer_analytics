@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import json
 import pickle
+from pathlib import Path
 
 import helper.machine_learning as ml_help
 
@@ -24,7 +25,9 @@ def _update_project_path():
         config = ruamel.yaml.YAML().load(f)
 
         # get the current path
-        current_path = os.getcwd()
+        base_path = Path(__file__).parent
+        current_path = (base_path / "..").resolve()
+        #current_path = os.getcwd()
         project_name = config["general"]["project_name"]
 
         # update the project path
@@ -46,8 +49,8 @@ def _get_config_file():
     :return: String with the config file name
     """
 
-    path = os.getcwd()
-    project_path = path.rsplit(PROJECT_NAME)[0] + PROJECT_NAME
+    base_path = Path(__file__).parent
+    project_path = (base_path / "..").resolve()
 
     return os.path.join(project_path, CONFIG_NAME)
 
