@@ -1,5 +1,10 @@
 __pycache__/
 .idea/
+.pytest_cache
+notebooks/.ipynb_checkpoints
+
+# data #
+########
 data/raw_data/kaggle_data
 data/raw_data/metrica_data
 data/raw_data/wyscout_data/events
@@ -23,4 +28,3 @@ data/matches_france.parquet
 data/matches_spain.parquet
 data/matches_italy.parquet
 data/matches_england.parquet
-notebooks/.ipynb_checkpoints
