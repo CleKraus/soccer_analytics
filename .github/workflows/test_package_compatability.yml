@@ -5,10 +5,9 @@ name: Package compatability with platforms
 
 on:
   push:
-    #branches: [ master ]
-    branches: [ github_actions ]
-  #pull_request:
-    #branches: [ master ]
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
@@ -17,7 +16,6 @@ jobs:
       matrix:
         python-version: [3.7]
         platform: [ubuntu-latest, macos-latest, windows-latest]
-        #platform: [ubuntu-latest]
 
     runs-on: ${{ matrix.platform }}
 
