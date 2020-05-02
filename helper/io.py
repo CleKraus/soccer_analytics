@@ -30,9 +30,11 @@ def _update_project_path():
         #current_path = os.getcwd()
         project_name = config["general"]["project_name"]
 
+        print(str(current_path))
         # update the project path
-        project_path = current_path.rsplit(project_name)[0] + project_name
-        config["general"]["project_path"] = project_path
+        #project_path = current_path.rsplit(project_name)[0] + project_name
+        #config["general"]["project_path"] = project_path
+        config["general"]["project_path"] = str(current_path)
 
     # update the config file
     with open(_get_config_file(), "w", encoding="utf-8") as f:
@@ -40,7 +42,8 @@ def _update_project_path():
         yaml.default_flow_style = False
         yaml.dump(config, f)
 
-    return project_path
+    return str(current_path)
+    #return project_path
 
 
 def _get_config_file():
@@ -346,3 +349,7 @@ def save_model(model, model_name):
 
     with open(os.path.join(project_path, folder, model_name), "wb") as f:
         pickle.dump(model, f)
+
+
+if __name__ == "__main__":
+    _update_project_path()
