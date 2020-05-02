@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies on a variety of different platforms to make sure that all packages
 # work well with all platforms
 
-name: Package compatability with platforms
+name: Platform check
 
 on:
   push:
