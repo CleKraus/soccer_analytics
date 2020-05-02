@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.6]
+        python-version: [3.6, 3.7, 3.8]
         platform: [ubuntu-latest]
 
     runs-on: ${{ matrix.platform }}
@@ -54,3 +54,7 @@ jobs:
     - name: Test notebook passing analysis
       run: |
         py.test --nbval-lax notebooks/passing_analysis.ipynb
+
+    - name: Test notebook expected goal logistic regression
+      run: |
+        py.test --nbval-lax notebooks/expected_goal_model_lr.ipynb
