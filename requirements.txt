@@ -1,4 +1,5 @@
 astropy==4.0.1.post1
+atomicwrites==1.4.0
 attrs==19.3.0
 backcall==0.1.0
 bleach==3.1.4
@@ -44,12 +45,14 @@ MarkupSafe==1.1.1
 matplotlib==3.2.1
 missingno==0.4.2
 mistune==0.8.4
+more-itertools==8.2.0
 nbconvert==5.6.1
 nbformat==5.0.5
 networkx==2.4
 notebook==6.0.3
 numba==0.48.0
 numpy==1.18.2
+packaging==20.3
 pandas==1.0.3
 pandas-profiling==2.6.0
 pandocfilters==1.4.2
@@ -59,12 +62,15 @@ phik==0.9.11
 pickleshare==0.7.5
 Pillow==7.1.1
 plotly==4.6.0
+pluggy==0.13.1
 prometheus-client==0.7.1
 prompt-toolkit==3.0.5
+py==1.8.1
 pyarrow==0.16.0
 Pygments==2.6.1
 pyparsing==2.4.7
 pyrsistent==0.16.0
+pytest==5.4.1
 python-dateutil==2.8.1
 pytz==2019.3
 PyWavelets==1.1.1
