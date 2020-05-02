@@ -44,9 +44,9 @@ jobs:
       run: |
         pytest
 
-    #- name: Test notebook exploratory analysis
-    #  run: |
-    #    py.test --nbval-lax notebooks/exploratory_analysis_event_data.ipynb
+    - name: Test notebook exploratory analysis
+      run: |
+        py.test --nbval-lax notebooks/exploratory_analysis_event_data.ipynb
 
     #- name: Test notebook goal kick analysis
     #  run: |

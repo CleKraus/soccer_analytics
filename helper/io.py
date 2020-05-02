@@ -27,13 +27,6 @@ def _update_project_path():
         # get the current path
         base_path = Path(__file__).parent
         current_path = (base_path / "..").resolve()
-        #current_path = os.getcwd()
-        project_name = config["general"]["project_name"]
-
-        print(str(current_path))
-        # update the project path
-        #project_path = current_path.rsplit(project_name)[0] + project_name
-        #config["general"]["project_path"] = project_path
         config["general"]["project_path"] = str(current_path)
 
     # update the config file
@@ -43,7 +36,6 @@ def _update_project_path():
         yaml.dump(config, f)
 
     return str(current_path)
-    #return project_path
 
 
 def _get_config_file():
