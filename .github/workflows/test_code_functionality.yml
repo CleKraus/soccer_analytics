@@ -16,7 +16,6 @@ jobs:
     strategy:
       matrix:
         python-version: [3.6]
-        #platform: [ubuntu-latest, macos-latest, windows-latest]
         platform: [ubuntu-latest]
 
     runs-on: ${{ matrix.platform }}
@@ -28,27 +27,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install ubuntu dependencies
-      if: matrix.platform == 'ubuntu-latest'
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install wheel flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    - name: Install macos dependencies
-      if: matrix.platform == 'macos-latest'
-      run: |
-        python -m pip install --upgrade pip
-        pip install wheel flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    - name: Install Windows dependencies
-      if: matrix.platform == 'windows-latest'
-      run: |
-        "%pythonLocation%\python.exe" -m pip install --upgrade pip
-        "%pythonLocation%\python.exe" -m pip install wheel flake8 pytest
-        "%pythonLocation%\python.exe" -m pip install -r requirements.txt
-      shell: cmd
 
     - name: Lint with flake8
       run: |
@@ -61,6 +44,14 @@ jobs:
       run: |
         pytest
 
-    - name: Test notebooks
+    - name: Test notebook exploratory analysis
       run: |
-        py.test --nbval-lax notebooks/test.ipynb
+        py.test --nbval-lax notebooks/exploratory_analysis_event_data.ipynb
+
+    - name: Test notebook goal kick analysis
+      run: |
+        py.test --nbval-lax notebooks/goal_kick_analysis.ipynb
+
+    - name: Test notebook passing analysis
+      run: |
+        py.test --nbval-lax notebooks/passing_analysis.ipynb
