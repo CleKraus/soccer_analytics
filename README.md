@@ -11,7 +11,7 @@
 * Thought of a starting point for projects rather than a "hidden" library
 * Set up in a way so that functions are easily extendable
 * All plots and animations are created with [plotly](https://plotly.com/python/) and therefore easily integretable into [dash](https://plotly.com/dash/) dashboards
-* Supports python 3.6
+* Supports python 3.6 - 3.8
 
 ## Examples
 
@@ -35,6 +35,12 @@ and run rudimentary exploratory analysis using pandas-profiling
     - Compute statistics efficiently
     - Draw position plots of players
     - Visualize passing lines and passing zones
+4. [Expected goal model with logistic regression](notebooks/expected_goal_model_lr.ipynb): While in the previous notebooks it was mostly about visualization, in this notebook we start 
+looking into machine learning. We jointly build an expected goal model using logistic regression and learn about fundamentals of machine learning, e.g.:
+    - Feature engineering 
+    - Multivariate analysis
+    - Metrics
+    - Model interpretation
 
 ## Installation
 If you are new to Python and soccer analytics I would recommend to you to download [Anaconda distribution](https://www.anaconda.com/distribution/#download-section) and follow 
@@ -49,16 +55,5 @@ the instruction under [Conda](#Conda)
 4. Install all required packages\
 `pip install -r requirements.txt`
 
-## FAQs
-**Q:** Most of the notebooks use data of the German Bundesliga. Can I also use other leagues?
-
-**A:** Yes, this is possible! However, you will need to run the pre-processing yourself before being able 
-to use the data in the notebooks. Just follow these steps:
-1. Download the [wyscout data](https://figshare.com/collections/Soccer_match_event_dataset/4415000/2)
-2. Unzip it and save it under data/raw_data/wyscout data , i.e. there should be *players.json* 
-and *teams.json* as well as two folders *events* and *matches* with the event data and match data, respectively.
-3. Set your league in the [wyscout_cleansing_pipeline.py](preprocessing/cleaning_wyscout_data/wyscout_cleansing_pipeline.py) script under *preprocessing/cleaning_wyscout_data* and run it
-4. Once the script ran, you should see additional files in the *data* folder that you can use in the notebooks
-
 ## Acknowledgements
-
+[wyscout data](https://figshare.com/collections/Soccer_match_event_dataset/4415000/2)
