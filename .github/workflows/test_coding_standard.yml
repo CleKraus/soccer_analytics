@@ -2,9 +2,9 @@ name: Coding standard
 
 on:
   push:
-    branches: [ github_actions ]
-  #pull_request:
-  #  branches: [ master ]
+    branches: [ master, dev ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
