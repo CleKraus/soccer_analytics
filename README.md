@@ -1,6 +1,7 @@
 # Soccer analytics
 ![](https://github.com/CleKraus/soccer_analytics/workflows/Testing/badge.svg)
 ![](https://github.com/CleKraus/soccer_analytics/workflows/Platform%20check/badge.svg)
+![](https://github.com/CleKraus/soccer_analytics/workflows/Coding%20standard/badge.svg)
 
 `soccer_analytics` is a Python project trying to facilitate and being a starting point for analytics projects in soccer. 
 
