@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # import packages
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def get_team_id(df_teams, team_name):
@@ -50,15 +50,23 @@ def get_match_id(df_matches, home_team, away_team, df_teams=None):
         if df_teams is None:
             raise ValueError("Requires *df_teams* to be set")
 
-    home_team_id = get_team_id(df_teams, home_team) if type(home_team) == str else home_team
-    away_team_id = get_team_id(df_teams, away_team) if type(away_team) == str else away_team
+    home_team_id = (
+        get_team_id(df_teams, home_team) if type(home_team) == str else home_team
+    )
+    away_team_id = (
+        get_team_id(df_teams, away_team) if type(away_team) == str else away_team
+    )
 
-    return df_matches[(df_matches["teamId"] == home_team_id) &
-                      (df_matches["side"] == "home") &
-                      (df_matches["oppTeamId"] == away_team_id)]["matchId"].values[0]
+    return df_matches[
+        (df_matches["teamId"] == home_team_id)
+        & (df_matches["side"] == "home")
+        & (df_matches["oppTeamId"] == away_team_id)
+    ]["matchId"].values[0]
 
 
-def get_time_around_special_event(df_events, event_id, secs_before=None, secs_after=None):
+def get_time_around_special_event(
+    df_events, event_id, secs_before=None, secs_after=None
+):
     """
     Given an *event_id* the function returns all the events between the event - *seconds_before* and
     the event + *seconds_after*
@@ -81,10 +89,12 @@ def get_time_around_special_event(df_events, event_id, secs_before=None, secs_af
     if secs_after is None:
         secs_after = 0.01
 
-    df_special_event = df_events[(df_events["matchId"] == match_id) &
-                                 (df_events["matchPeriod"] == match_period) &
-                                 (df_events["eventSec"] >= event_sec - secs_before) &
-                                 (df_events["eventSec"] <= event_sec + secs_after)]
+    df_special_event = df_events[
+        (df_events["matchId"] == match_id)
+        & (df_events["matchPeriod"] == match_period)
+        & (df_events["eventSec"] >= event_sec - secs_before)
+        & (df_events["eventSec"] <= event_sec + secs_after)
+    ]
     return df_special_event
 
 
@@ -140,12 +150,16 @@ def get_event_after(df, df_events, considered_events, cols_return):
     df_event_after = df_all.drop_duplicates("id")
 
     if colname_sec is not None:
-        df_event_after = df_event_after.rename(columns={"eventSecRelEvent": colname_sec})
+        df_event_after = df_event_after.rename(
+            columns={"eventSecRelEvent": colname_sec}
+        )
         cols = ["id", colname_sec]
     else:
         cols = ["id"]
 
-    df_event_after = df_event_after[cols + [cols_return[key] for key in cols_return.keys()]].copy()
+    df_event_after = df_event_after[
+        cols + [cols_return[key] for key in cols_return.keys()]
+    ].copy()
 
     df_out = pd.merge(df_out, df_event_after, how="left")
     return df_out
@@ -153,6 +167,7 @@ def get_event_after(df, df_events, considered_events, cols_return):
 
 # Functions to prepare the statistics
 #####################################
+
 
 def compute_length(df):
     """
@@ -178,8 +193,14 @@ def _compute_total_accurate_passes(df_events, group_col):
     """
     Helper function to compute total accurate passes in *df_events* per *group_col*
     """
-    df_passes = df_events[(df_events["eventName"] == "Pass") & (df_events["accurate"] == 1)]
-    return df_passes.groupby(group_col).agg(totalAccuratePasses=("id", "size")).reset_index()
+    df_passes = df_events[
+        (df_events["eventName"] == "Pass") & (df_events["accurate"] == 1)
+    ]
+    return (
+        df_passes.groupby(group_col)
+        .agg(totalAccuratePasses=("id", "size"))
+        .reset_index()
+    )
 
 
 def _compute_mean_pass_length(df_events, group_col):
@@ -188,7 +209,11 @@ def _compute_mean_pass_length(df_events, group_col):
     """
     df_passes = df_events[(df_events["eventName"] == "Pass")].copy()
     df_passes = compute_length(df_passes)
-    return df_passes.groupby(group_col).agg(meanPassLength=("lengthMeters", "mean")).reset_index()
+    return (
+        df_passes.groupby(group_col)
+        .agg(meanPassLength=("lengthMeters", "mean"))
+        .reset_index()
+    )
 
 
 def _compute_total_shots(df_events, group_col):
@@ -223,8 +248,14 @@ def _compute_centroid(df_events, group_col, centroid_events=None):
     if centroid_events is not None:
         df_events = df_events[df_events["eventName"].isin(centroid_events)]
 
-    return df_events.groupby(group_col).agg(centroidX=("posBeforeXMeters", "mean"),
-                                            centroidY=("posBeforeYMeters", "mean")).reset_index()
+    return (
+        df_events.groupby(group_col)
+        .agg(
+            centroidX=("posBeforeXMeters", "mean"),
+            centroidY=("posBeforeYMeters", "mean"),
+        )
+        .reset_index()
+    )
 
 
 def _compute_minutes_played(df_events, group_col, df_formations):
@@ -234,14 +265,26 @@ def _compute_minutes_played(df_events, group_col, df_formations):
     """
     lst_matches = list(df_events["matchId"].unique())
     formation_matches = df_formations[df_formations["matchId"].isin(lst_matches)].copy()
-    return formation_matches.groupby(group_col).agg(lineup=("lineup", "sum"),
-                                                    substituteIn=("substituteIn", "sum"),
-                                                    substituteOut=("substituteOut", "sum"),
-                                                    minutesPlayed=("minutesPlayed", "sum")).reset_index()
+    return (
+        formation_matches.groupby(group_col)
+        .agg(
+            lineup=("lineup", "sum"),
+            substituteIn=("substituteIn", "sum"),
+            substituteOut=("substituteOut", "sum"),
+            minutesPlayed=("minutesPlayed", "sum"),
+        )
+        .reset_index()
+    )
 
 
-def compute_statistics(df_events, group_col, keep_kpis="all", drop_kpis=None, centroid_events=None,
-                       df_formations=None):
+def compute_statistics(
+    df_events,
+    group_col,
+    keep_kpis="all",
+    drop_kpis=None,
+    centroid_events=None,
+    df_formations=None,
+):
     """
     Compute statistics for a player, team or match. Currently the following statistics are supported:
         - totalPasses
@@ -265,15 +308,17 @@ def compute_statistics(df_events, group_col, keep_kpis="all", drop_kpis=None, ce
     """
     # set the KPIs that should be computed
     if keep_kpis == "all":
-        keep_kpis = ["totalPasses",
-                     "totalAccuratePasses",
-                     "shareAccuratePasses",
-                     "passLength",
-                     "totalShots",
-                     "totalGoals",
-                     "totalDuels",
-                     "centroid",
-                     "minutesPlayed"]
+        keep_kpis = [
+            "totalPasses",
+            "totalAccuratePasses",
+            "shareAccuratePasses",
+            "passLength",
+            "totalShots",
+            "totalGoals",
+            "totalDuels",
+            "centroid",
+            "minutesPlayed",
+        ]
 
     if drop_kpis is not None:
         keep_kpis = [kpi for kpi in keep_kpis if kpi not in drop_kpis]
@@ -281,35 +326,61 @@ def compute_statistics(df_events, group_col, keep_kpis="all", drop_kpis=None, ce
         # set the group column accordingly
     if group_col == "player":
         group_col = "playerId"
-        df_agg = df_events.groupby(group_col).agg(playerName=("playerName", "min"),
-                                                  playerPosition=("playerPosition", "min"),
-                                                  teamId=("teamId", lambda x: x.value_counts().index[0]),
-                                                  nbMatches=("matchId", "nunique")).reset_index()
+        df_agg = (
+            df_events.groupby(group_col)
+            .agg(
+                playerName=("playerName", "min"),
+                playerPosition=("playerPosition", "min"),
+                teamId=("teamId", lambda x: x.value_counts().index[0]),
+                nbMatches=("matchId", "nunique"),
+            )
+            .reset_index()
+        )
         df_agg = df_agg[df_agg["playerId"] != 0]
 
     elif group_col == "team":
         group_col = "teamId"
-        df_agg = df_events.groupby(group_col).agg(nbMatches=("matchId", "nunique")).reset_index()
+        df_agg = (
+            df_events.groupby(group_col)
+            .agg(nbMatches=("matchId", "nunique"))
+            .reset_index()
+        )
 
     elif group_col == "match":
         group_col = "matchId"
-        df_agg = df_events.groupby(group_col).agg(nbMatches=("matchId", "nunique")).reset_index()
+        df_agg = (
+            df_events.groupby(group_col)
+            .agg(nbMatches=("matchId", "nunique"))
+            .reset_index()
+        )
 
     elif group_col == "player_match":
         group_col = ["playerId", "matchId"]
-        df_agg = df_events.groupby(group_col).agg(playerName=("playerName", "min"),
-                                                  playerPosition=("playerPosition", "min"),
-                                                  teamId=("teamId", lambda x: x.value_counts().index[0]),
-                                                  nbMatches=("matchId", "nunique")).reset_index()
+        df_agg = (
+            df_events.groupby(group_col)
+            .agg(
+                playerName=("playerName", "min"),
+                playerPosition=("playerPosition", "min"),
+                teamId=("teamId", lambda x: x.value_counts().index[0]),
+                nbMatches=("matchId", "nunique"),
+            )
+            .reset_index()
+        )
 
         df_agg = df_agg[df_agg["playerId"] != 0]
 
     elif group_col == "team_match":
         group_col = ["teamId", "matchId"]
-        df_agg = df_events.groupby(group_col).agg(nbMatches=("matchId", "nunique")).reset_index()
+        df_agg = (
+            df_events.groupby(group_col)
+            .agg(nbMatches=("matchId", "nunique"))
+            .reset_index()
+        )
 
     else:
-        raise ValueError("*group_col* must be one of 'player', 'team', 'match', 'player_match' or 'team_match'")
+        raise ValueError(
+            "*group_col* must be one of 'player', 'team', 'match', 'player_match' or 'team_match'"
+        )
 
     # compute total passes
     if "totalPasses" in keep_kpis:
@@ -336,7 +407,9 @@ def compute_statistics(df_events, group_col, keep_kpis="all", drop_kpis=None, ce
             df_agg = pd.merge(df_agg, df_agg_var, how="left")
             df_agg["totalAccuratePasses"].fillna(0, inplace=True)
 
-        df_agg["shareAccuratePasses"] = np.round(df_agg["totalAccuratePasses"] / df_agg["totalPasses"] * 100, 2)
+        df_agg["shareAccuratePasses"] = np.round(
+            df_agg["totalAccuratePasses"] / df_agg["totalPasses"] * 100, 2
+        )
         df_agg["shareAccuratePasses"].fillna(0, inplace=True)
 
         if "totalPasses" not in keep_kpis:
@@ -369,9 +442,11 @@ def compute_statistics(df_events, group_col, keep_kpis="all", drop_kpis=None, ce
         df_agg["totalDuels"].fillna(0, inplace=True)
 
     # only compute minutes played if df_formations is passed and we consider players rather than teams or matches
-    if "minutesPlayed" in keep_kpis and \
-            df_formations is not None and \
-            (group_col == "playerId" or "playerId" in group_col):
+    if (
+        "minutesPlayed" in keep_kpis
+        and df_formations is not None
+        and (group_col == "playerId" or "playerId" in group_col)
+    ):
 
         df_agg_var = _compute_minutes_played(df_events, group_col, df_formations)
         df_agg = pd.merge(df_agg, df_agg_var, how="left")
@@ -397,23 +472,35 @@ def number_of_passes_between_players(df_events, team_id):
 
     # get the player who had the ball next - grouping is required to make sure we stay in the same
     # match and matchPeriod
-    df_events["nextPlayerId"] = df_events.groupby(["matchId", "matchPeriod"])["playerId"].shift(-1)
+    df_events["nextPlayerId"] = df_events.groupby(["matchId", "matchPeriod"])[
+        "playerId"
+    ].shift(-1)
 
     # only keep the accurate passes -> for the inaccurate ones we do not trust that the next player of the
     # team was really the one for which the pass was intented
-    df_passes = df_events[(df_events["eventName"] == "Pass") &
-                          (df_events["accurate"] == 1)].copy()
+    df_passes = df_events[
+        (df_events["eventName"] == "Pass") & (df_events["accurate"] == 1)
+    ].copy()
 
     # get the number of passes between two players - we do this by considering passes in both directions, i.e. from
     # player A to player B and vice versa
-    df_passes["player1Id"] = np.where(df_passes["playerId"] < df_passes["nextPlayerId"],
-                                      df_passes["playerId"], df_passes["nextPlayerId"])
+    df_passes["player1Id"] = np.where(
+        df_passes["playerId"] < df_passes["nextPlayerId"],
+        df_passes["playerId"],
+        df_passes["nextPlayerId"],
+    )
 
-    df_passes["player2Id"] = np.where(df_passes["playerId"] < df_passes["nextPlayerId"],
-                                      df_passes["nextPlayerId"], df_passes["playerId"])
+    df_passes["player2Id"] = np.where(
+        df_passes["playerId"] < df_passes["nextPlayerId"],
+        df_passes["nextPlayerId"],
+        df_passes["playerId"],
+    )
 
-    df_passes = df_passes.groupby(["player1Id", "player2Id"]). \
-        agg(totalPasses=("player1Id", "count")).reset_index()
+    df_passes = (
+        df_passes.groupby(["player1Id", "player2Id"])
+        .agg(totalPasses=("player1Id", "count"))
+        .reset_index()
+    )
 
     return df_passes
 
@@ -430,12 +517,18 @@ def compute_current_standing(df_events):
     df.sort_values(["matchId", "matchPeriod", "eventSec"], inplace=True)
 
     # indicate for each event whether the home team scored a goal (no own goals)
-    df["goalHomeTeam"] = df["goal"] * (df["eventName"].isin(["Shot", "Free Kick"])) * \
-                         (df["teamId"] == df["homeTeamId"])
+    df["goalHomeTeam"] = (
+        df["goal"]
+        * (df["eventName"].isin(["Shot", "Free Kick"]))
+        * (df["teamId"] == df["homeTeamId"])
+    )
 
     # indicate for each event whether the away team scored a goal (no own goals)
-    df["goalAwayTeam"] = df["goal"] * (df["eventName"].isin(["Shot", "Free Kick"])) * \
-                         (df["teamId"] == df["awayTeamId"])
+    df["goalAwayTeam"] = (
+        df["goal"]
+        * (df["eventName"].isin(["Shot", "Free Kick"]))
+        * (df["teamId"] == df["awayTeamId"])
+    )
 
     # indicate for each event whether it was an own goal
     df["ownGoalHomeTeam"] = df["ownGoal"] * (df["teamId"] == df["homeTeamId"])
@@ -454,9 +547,15 @@ def compute_current_standing(df_events):
     df["currentGoalsAwayTeam"] = df["currentGoalsAwayTeam"] - df["goalAwayTeam"]
 
     # get the relative score from the perspective of the team of the event
-    df["currentRelativeScore"] = np.where(df["teamId"] == df["homeTeamId"],
-                                          df["currentGoalsHomeTeam"] - df["currentGoalsAwayTeam"],
-                                          df["currentGoalsAwayTeam"] - df["currentGoalsHomeTeam"])
+    df["currentRelativeScore"] = np.where(
+        df["teamId"] == df["homeTeamId"],
+        df["currentGoalsHomeTeam"] - df["currentGoalsAwayTeam"],
+        df["currentGoalsAwayTeam"] - df["currentGoalsHomeTeam"],
+    )
 
-    df.drop(["goalHomeTeam", "goalAwayTeam", "ownGoalHomeTeam", "ownGoalAwayTeam"], axis=1, inplace=True)
+    df.drop(
+        ["goalHomeTeam", "goalAwayTeam", "ownGoalHomeTeam", "ownGoalAwayTeam"],
+        axis=1,
+        inplace=True,
+    )
     return df

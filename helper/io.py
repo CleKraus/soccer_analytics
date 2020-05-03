@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 # import packages
-import os
-import ruamel.yaml
-import pandas as pd
-import numpy as np
 import json
+import os
 import pickle
 from pathlib import Path
+
+import pandas as pd
+import ruamel.yaml
 
 import helper.machine_learning as ml_help
 
@@ -145,27 +145,51 @@ def read_event_data(league, notebook=None):
 
     # only return the columns needed for the goal kick analysis
     if notebook == "goal_kick_analysis":
-        cols = ["id", "matchId", "matchPeriod", "eventSec", "eventName", "subEventName", "teamId", "posBeforeXMeters",
-                "posBeforeYMeters", "posAfterXMeters", "posAfterYMeters", "playerId", "playerName", "playerPosition",
-                "homeTeamId", "awayTeamId"]
+        cols = [
+            "id",
+            "matchId",
+            "matchPeriod",
+            "eventSec",
+            "eventName",
+            "subEventName",
+            "teamId",
+            "posBeforeXMeters",
+            "posBeforeYMeters",
+            "posAfterXMeters",
+            "posAfterYMeters",
+            "playerId",
+            "playerName",
+            "playerPosition",
+            "homeTeamId",
+            "awayTeamId",
+        ]
 
         df = df[cols].copy()
 
     elif notebook == "expected_goal_model":
 
         # get one variable out the the three "body part" columns
-        df = ml_help.from_dummy(df, ["leftFoot", "rightFoot", "head/body"], "bodyPartShot")
+        df = ml_help.from_dummy(
+            df, ["leftFoot", "rightFoot", "head/body"], "bodyPartShot"
+        )
 
         # encode the column with a number
-        dict_body_part = {"Unknown": 0,
-                          "leftFoot": 1,
-                          "head/body": 2,
-                          "rightFoot": 3}
+        dict_body_part = {"Unknown": 0, "leftFoot": 1, "head/body": 2, "rightFoot": 3}
         df["bodyPartShotCode"] = df["bodyPartShot"].map(lambda x: dict_body_part[x])
 
         # drop columns that are not needed in this notebook
-        drop_cols = ["accurate", "notAccurate", "assist", "keyPass", "direct", "indirect",
-                     "dangerousBallLost", "leftFoot", "rightFoot", "head/body"]
+        drop_cols = [
+            "accurate",
+            "notAccurate",
+            "assist",
+            "keyPass",
+            "direct",
+            "indirect",
+            "dangerousBallLost",
+            "leftFoot",
+            "rightFoot",
+            "head/body",
+        ]
         df.drop(drop_cols, axis=1, inplace=True)
 
     return df
@@ -308,7 +332,9 @@ def write_data(df, data_type, league=None, data_folder=None):
     try:
         fname = config[data_folder][data_type]
     except KeyError:
-        raise KeyError(f"'{data_type}' is not a valid data type. Please set in the config file")
+        raise KeyError(
+            f"'{data_type}' is not a valid data type. Please set in the config file"
+        )
 
     # replace xxxxx by the league name
     if "xxxxx" in fname:

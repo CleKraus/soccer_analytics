@@ -3,7 +3,6 @@ import pandas as pd
 
 
 class Players:
-
     def __init__(self, fname):
         self.players = pd.read_parquet(fname)
 

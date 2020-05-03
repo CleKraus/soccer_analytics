@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 # import packages
-from abc import ABC, abstractmethod
 import math
-import pandas as pd
+from abc import ABC, abstractmethod
+
 import numpy as np
+import pandas as pd
 
 import helper.io as io
 
@@ -109,7 +110,9 @@ class ExpectedGoalModel(ABC):
         if "shotBefore" in df.columns:
             df.drop("shotBefore", axis=1, inplace=True)
 
-        df_shot_before = df_events[df_events["subEventBefore"].isin(["Shot", "Reflexes", "Save attempt"])].copy()
+        df_shot_before = df_events[
+            df_events["subEventBefore"].isin(["Shot", "Reflexes", "Save attempt"])
+        ].copy()
         df_shot_before["shotBefore"] = 1
         df = pd.merge(df, df_shot_before[["id", "shotBefore"]], on="id", how="left")
         df["shotBefore"].fillna(0, inplace=True)
@@ -120,14 +123,17 @@ class ExpectedGoalModel(ABC):
         # add the angle of the shot (0=in front of goal, 90=on goal line but not between posts)
 
         # distance to the post in y-direction (notice that the width of the goal is 7.32)
-        df["dy"] = (df["distToCenter"] - 7.32 / 2)
+        df["dy"] = df["distToCenter"] - 7.32 / 2
 
         # if we have a negative angle (i.e. we are between the two posts right in front of the goal), we want to set the
         # distance to 0
         df["dy"].clip(lower=0, inplace=True)
 
         # compute the angle to the closest post
-        df["angle"] = df.apply(lambda row: math.degrees(math.atan2(row["dy"], row["distToGoalLine"])), axis=1)
+        df["angle"] = df.apply(
+            lambda row: math.degrees(math.atan2(row["dy"], row["distToGoalLine"])),
+            axis=1,
+        )
 
         # clip the angle at 35 degrees
         df["angleClip"] = df["angle"].clip(lower=35)
@@ -153,7 +159,9 @@ class ExpectedGoalModel(ABC):
         df = df_events.copy()
 
         df["eventBefore"] = df.groupby(["matchId", "matchPeriod"])["eventName"].shift(1)
-        df["subEventBefore"] = df.groupby(["matchId", "matchPeriod"])["subEventName"].shift(1)
+        df["subEventBefore"] = df.groupby(["matchId", "matchPeriod"])[
+            "subEventName"
+        ].shift(1)
         df["teamBefore"] = df.groupby(["matchId", "matchPeriod"])["teamId"].shift(1)
 
         return df
@@ -202,21 +210,37 @@ class ExpectedGoalModelLogistic(ExpectedGoalModel):
         self.model_name = "expected_goals_logreg"
 
         # features used in the model
-        self.features = ["distToGoalLine", "distToCenter", "weakFoot", "counterAttack", "corner", "smartPass",
-                         "duel", "shotBefore", "angleClip", "frontOfGoal", "headDistToGoalLine"]
+        self.features = [
+            "distToGoalLine",
+            "distToCenter",
+            "weakFoot",
+            "counterAttack",
+            "corner",
+            "smartPass",
+            "duel",
+            "shotBefore",
+            "angleClip",
+            "frontOfGoal",
+            "headDistToGoalLine",
+        ]
 
         # mean values and standard deviations for this model
-        self.feature_measures = {'distToGoalLine': {'mean': 15.930207612456748, 'std': 8.520058996794551},
-                                 'distToCenter': {'mean': 7.786845938375349, 'std': 5.2201237665066},
-                                 'weakFoot': {'mean': 0.18866370077442743, 'std': 0.3912476878714778},
-                                 'counterAttack': {'mean': 0.055692865381446695, 'std': 0.22933142674397106},
-                                 'corner': {'mean': 0.023924864063272367, 'std': 0.15281765125037938},
-                                 'smartPass': {'mean': 0.04264293952875268, 'std': 0.20205411311643012},
-                                 'duel': {'mean': 0.36875926841324763, 'std': 0.48247646741037054},
-                                 'shotBefore': {'mean': 0.021057834898665348, 'std': 0.14357953142714186},
-                                 'angleClip': {'mean': 36.94625627632563, 'std': 5.8718678088086165},
-                                 'frontOfGoal': {'mean': 0.01888284725654968, 'std': 0.13611354039183185},
-                                 'headDistToGoalLine': {'mean': 1.440968858131488, 'std': 3.7213713754703233}}
+        self.feature_measures = {
+            "distToGoalLine": {"mean": 15.930207612456748, "std": 8.520058996794551},
+            "distToCenter": {"mean": 7.786845938375349, "std": 5.2201237665066},
+            "weakFoot": {"mean": 0.18866370077442743, "std": 0.3912476878714778},
+            "counterAttack": {"mean": 0.055692865381446695, "std": 0.22933142674397106},
+            "corner": {"mean": 0.023924864063272367, "std": 0.15281765125037938},
+            "smartPass": {"mean": 0.04264293952875268, "std": 0.20205411311643012},
+            "duel": {"mean": 0.36875926841324763, "std": 0.48247646741037054},
+            "shotBefore": {"mean": 0.021057834898665348, "std": 0.14357953142714186},
+            "angleClip": {"mean": 36.94625627632563, "std": 5.8718678088086165},
+            "frontOfGoal": {"mean": 0.01888284725654968, "std": 0.13611354039183185},
+            "headDistToGoalLine": {
+                "mean": 1.440968858131488,
+                "std": 3.7213713754703233,
+            },
+        }
 
     def create_features(self, df, overwrite=True):
         """
@@ -239,7 +263,12 @@ class ExpectedGoalModelLogistic(ExpectedGoalModel):
             df = self._add_feature_distance_center(df)
 
         # dummy encode the body parts
-        if any(col not in df.columns for col in ["head/body", "weakFoot", "strongFoot"]) or overwrite:
+        if (
+            any(
+                col not in df.columns for col in ["head/body", "weakFoot", "strongFoot"]
+            )
+            or overwrite
+        ):
             df = self._add_features_body_part(df)
 
         # add feature with the angle of the shot
@@ -293,7 +322,9 @@ class ExpectedGoalModelLogistic(ExpectedGoalModel):
         df_normal = df[self.features].copy()
 
         for feat in self.features:
-            df_normal[feat] = (df_normal[feat] - self.feature_measures[feat]["mean"]) / self.feature_measures[feat]["std"]
+            df_normal[feat] = (
+                df_normal[feat] - self.feature_measures[feat]["mean"]
+            ) / self.feature_measures[feat]["std"]
 
         return df_normal
 

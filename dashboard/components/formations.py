@@ -3,7 +3,6 @@ import pandas as pd
 
 
 class Formations:
-
     def __init__(self, fname):
         self.formations = pd.read_parquet(fname)
 
@@ -13,7 +12,9 @@ class Formations:
             cols = self.formations.columns
 
         df_form_match = self.formations[
-            (self.formations["matchId"] == match_id) & (self.formations["teamId"] == team_id)]
+            (self.formations["matchId"] == match_id)
+            & (self.formations["teamId"] == team_id)
+        ]
 
         if type == "all":
             return df_form_match[cols]

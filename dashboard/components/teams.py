@@ -3,7 +3,6 @@ import pandas as pd
 
 
 class Teams:
-
     def __init__(self, fname):
         self.teams = pd.read_parquet(fname)
 
@@ -19,7 +18,9 @@ class Teams:
         elif area_name != "all" and type == "all":
             return self.teams[(self.teams["area.name"] == area_name)][cols]
         else:
-            return self.teams[(self.teams["area.name"] == area_name) & (self.teams["type"] == type)][cols]
+            return self.teams[
+                (self.teams["area.name"] == area_name) & (self.teams["type"] == type)
+            ][cols]
 
     def team_id(self, team_name):
         return self.teams[self.teams["teamName"] == team_name].iloc[0]["teamId"]

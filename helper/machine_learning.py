@@ -1,22 +1,25 @@
-
 # import packages
-import numpy as np
-from pandas._testing import assert_frame_equal
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from plotly.colors import DEFAULT_PLOTLY_COLORS
-
 import math
-import pandas as pd
-import scipy.stats as ss
 from collections import Counter
 
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import scipy.stats as ss
+from pandas._testing import assert_frame_equal
+from plotly.colors import DEFAULT_PLOTLY_COLORS
+from plotly.subplots import make_subplots
 
-def create_univariate_variable_graph(df, col, target_col,
-                                     y1_axis_name="Share obs. (%)",
-                                     y2_axis_name="Target prob. (%)",
-                                     binned_cols=False,
-                                     title_name=None):
+
+def create_univariate_variable_graph(
+    df,
+    col,
+    target_col,
+    y1_axis_name="Share obs. (%)",
+    y2_axis_name="Target prob. (%)",
+    binned_cols=False,
+    title_name=None,
+):
     """
     Function creates a plotly figure showing the distribution over the different values in column *col* as well as the share
     of positives for the *target_col* per value in *col*.
@@ -47,8 +50,11 @@ def create_univariate_variable_graph(df, col, target_col,
                 lst_x_title.append(f"{diff_vals[i]} - {diff_vals[i + 1]}")
 
     # compute the share of observations for each group and the probability of the target
-    df_group = df.groupby(col).agg(total_count=(col, "count"),
-                                   total_target=(target_col, "sum")).reset_index()
+    df_group = (
+        df.groupby(col)
+        .agg(total_count=(col, "count"), total_target=(target_col, "sum"))
+        .reset_index()
+    )
     df_group["share"] = df_group["total_count"] / len(df) * 100
     df_group["share_target"] = df_group["total_target"] / df_group["total_count"] * 100
 
@@ -75,8 +81,9 @@ def create_univariate_variable_graph(df, col, target_col,
             name=y1_axis_name,
             hoverinfo="text",
             text=hovertext_var,
-            marker=dict(color=DEFAULT_PLOTLY_COLORS[0])
-        ))
+            marker=dict(color=DEFAULT_PLOTLY_COLORS[0]),
+        )
+    )
 
     # left y-axis corresponds to the probability of the target for each group
     fig.add_trace(
@@ -86,22 +93,18 @@ def create_univariate_variable_graph(df, col, target_col,
             name=y2_axis_name,
             hoverinfo="text",
             text=hovertext_tar,
-            marker=dict(color=DEFAULT_PLOTLY_COLORS[1])
-        ), secondary_y=True)
+            marker=dict(color=DEFAULT_PLOTLY_COLORS[1]),
+        ),
+        secondary_y=True,
+    )
 
     # update the layout of the figure
     fig.update_layout(
         yaxis=dict(
-            title=y1_axis_name,
-            titlefont_size=16,
-            tickfont_size=14,
-            rangemode="tozero"
+            title=y1_axis_name, titlefont_size=16, tickfont_size=14, rangemode="tozero"
         ),
         yaxis2=dict(
-            title=y2_axis_name,
-            titlefont_size=16,
-            tickfont_size=14,
-            rangemode="tozero"
+            title=y2_axis_name, titlefont_size=16, tickfont_size=14, rangemode="tozero"
         ),
     )
 
@@ -110,11 +113,13 @@ def create_univariate_variable_graph(df, col, target_col,
         title_name = col
     fig.update_layout(
         title={
-            'text': title_name,
-            'y': 0.9,
-            'x': 0.5,
-            'xanchor': 'center',
-            'yanchor': 'top'})
+            "text": title_name,
+            "y": 0.9,
+            "x": 0.5,
+            "xanchor": "center",
+            "yanchor": "top",
+        }
+    )
 
     # update the x-axis title in case of a binned column
     if binned_cols:
@@ -131,10 +136,12 @@ def combine_univariate_variable_graphs(figures, cols, rows, shared_axis=False):
 
     if shared_axis:
         fig = make_subplots(
-            rows=rows, cols=cols, subplot_titles=titles, shared_yaxes=True)
+            rows=rows, cols=cols, subplot_titles=titles, shared_yaxes=True
+        )
     else:
         fig = make_subplots(
-            rows=rows, cols=cols, subplot_titles=titles, shared_yaxes=True)
+            rows=rows, cols=cols, subplot_titles=titles, shared_yaxes=True
+        )
 
         # add the data to the plots
     for row in range(rows):
@@ -210,8 +217,6 @@ def check_column_match(df1, df2, columns):
     return True
 
 
-
-
 """
 Function *associations* copied from https://github.com/shakedzy/dython
 More on the associations can be found here:
@@ -222,7 +227,7 @@ https://towardsdatascience.com/the-search-for-categorical-correlation-a1cf7f1888
 
 def _convert(data, to):
     converted = None
-    if to == 'array':
+    if to == "array":
         if isinstance(data, np.ndarray):
             converted = data
         elif isinstance(data, pd.Series):
@@ -231,14 +236,14 @@ def _convert(data, to):
             converted = np.array(data)
         elif isinstance(data, pd.DataFrame):
             converted = data.as_matrix()
-    elif to == 'list':
+    elif to == "list":
         if isinstance(data, list):
             converted = data
         elif isinstance(data, pd.Series):
             converted = data.values.tolist()
         elif isinstance(data, np.ndarray):
             converted = data.tolist()
-    elif to == 'dataframe':
+    elif to == "dataframe":
         if isinstance(data, pd.DataFrame):
             converted = data
         elif isinstance(data, np.ndarray):
@@ -246,7 +251,9 @@ def _convert(data, to):
     else:
         raise ValueError("Unknown data conversion: {}".format(to))
     if converted is None:
-        raise TypeError('cannot handle data conversion of type: {} to {}'.format(type(data),to))
+        raise TypeError(
+            "cannot handle data conversion of type: {} to {}".format(type(data), to)
+        )
     else:
         return converted
 
@@ -272,8 +279,8 @@ def conditional_entropy(x, y):
         p_y = y_counter[xy[1]] / total_occurrences
         # TODO: Was only quick fix to let it run - think about good solution
         if p_y < 0.000001 or p_xy < 0.000001:
-            return -1*100
-        entropy += p_xy * math.log(p_y/p_xy)
+            return -1 * 100
+        entropy += p_xy * math.log(p_y / p_xy)
     return entropy
 
 
@@ -295,12 +302,12 @@ def cramers_v(x, y):
     confusion_matrix = pd.crosstab(x, y)
     chi2 = ss.chi2_contingency(confusion_matrix)[0]
     n = confusion_matrix.sum().sum()
-    phi2 = chi2/n
+    phi2 = chi2 / n
     r, k = confusion_matrix.shape
-    phi2corr = max(0, phi2-((k-1)*(r-1))/(n-1))
-    rcorr = r-((r-1)**2)/(n-1)
-    kcorr = k-((k-1)**2)/(n-1)
-    return np.sqrt(phi2corr/min((kcorr-1),(rcorr-1)))
+    phi2corr = max(0, phi2 - ((k - 1) * (r - 1)) / (n - 1))
+    rcorr = r - ((r - 1) ** 2) / (n - 1)
+    kcorr = k - ((k - 1) ** 2) / (n - 1)
+    return np.sqrt(phi2corr / min((kcorr - 1), (rcorr - 1)))
 
 
 def theils_u(x, y):
@@ -321,7 +328,7 @@ def theils_u(x, y):
     s_xy = conditional_entropy(x, y)
     x_counter = Counter(x)
     total_occurrences = sum(x_counter.values())
-    p_x = list(map(lambda n: n/total_occurrences, x_counter.values()))
+    p_x = list(map(lambda n: n / total_occurrences, x_counter.values()))
     s_x = ss.entropy(p_x)
     if s_x == 0:
         return 1
@@ -345,27 +352,35 @@ def correlation_ratio(categories, measurements):
     measurements : list / NumPy ndarray / Pandas Series
         A sequence of continuous measurements
     """
-    categories = _convert(categories, 'array')
-    measurements = _convert(measurements, 'array')
+    categories = _convert(categories, "array")
+    measurements = _convert(measurements, "array")
     fcat, _ = pd.factorize(categories)
-    cat_num = np.max(fcat)+1
+    cat_num = np.max(fcat) + 1
     y_avg_array = np.zeros(cat_num)
     n_array = np.zeros(cat_num)
     for i in range(0, cat_num):
         cat_measures = measurements[np.argwhere(fcat == i).flatten()]
         n_array[i] = len(cat_measures)
         y_avg_array[i] = np.average(cat_measures)
-    y_total_avg = np.sum(np.multiply(y_avg_array, n_array))/np.sum(n_array)
-    numerator = np.sum(np.multiply(n_array, np.power(np.subtract(y_avg_array, y_total_avg), 2)))
+    y_total_avg = np.sum(np.multiply(y_avg_array, n_array)) / np.sum(n_array)
+    numerator = np.sum(
+        np.multiply(n_array, np.power(np.subtract(y_avg_array, y_total_avg), 2))
+    )
     denominator = np.sum(np.power(np.subtract(measurements, y_total_avg), 2))
     if numerator == 0:
         eta = 0.0
     else:
-        eta = np.sqrt(numerator/denominator)
+        eta = np.sqrt(numerator / denominator)
     return eta
 
 
-def compute_associations(df: pd.DataFrame, col_1: str, col_2: str, nominal_columns: list, theil_u: bool = False):
+def compute_associations(
+    df: pd.DataFrame,
+    col_1: str,
+    col_2: str,
+    nominal_columns: list,
+    theil_u: bool = False,
+):
     """
     Calculate the correlation/strength-of-association of features in data-set with both categorical (eda_tools) and
     continuous features using:
@@ -387,7 +402,10 @@ def compute_associations(df: pd.DataFrame, col_1: str, col_2: str, nominal_colum
         if col_1 in nominal_columns:
             if col_2 in nominal_columns:
                 if theil_u:
-                    return theils_u(df[col_1], df[col_2]), theils_u(df[col_2], df[col_1])
+                    return (
+                        theils_u(df[col_1], df[col_2]),
+                        theils_u(df[col_2], df[col_1]),
+                    )
                 else:
                     cell = cramers_v(df[col_1], df[col_2])
                     return cell, cell
@@ -421,7 +439,13 @@ def compute_associations(df: pd.DataFrame, col_1: str, col_2: str, nominal_colum
                 return cell, cell
 
 
-def associations(dataset, nominal_columns=None, mark_columns=False, theil_u=False, return_results=True):
+def associations(
+    dataset,
+    nominal_columns=None,
+    mark_columns=False,
+    theil_u=False,
+    return_results=True,
+):
     """
     Calculate the correlation/strength-of-association of features in data-set with both categorical (eda_tools) and
     continuous features using:
@@ -445,11 +469,11 @@ def associations(dataset, nominal_columns=None, mark_columns=False, theil_u=Fals
     return_results : Boolean, default = False
         If True, the function will return a Pandas DataFrame of the computed associations
     """
-    dataset = _convert(dataset, 'dataframe')
+    dataset = _convert(dataset, "dataframe")
     columns = dataset.columns
     if nominal_columns is None:
         nominal_columns = list()
-    elif nominal_columns == 'all':
+    elif nominal_columns == "all":
         nominal_columns = columns
     corr = pd.DataFrame(index=columns, columns=columns)
     for i in range(0, len(columns)):
@@ -458,13 +482,18 @@ def associations(dataset, nominal_columns=None, mark_columns=False, theil_u=Fals
             if i == j:
                 corr[columns[i]][columns[j]] = 1.0
             else:
-                val_1, val_2 = compute_associations(dataset, columns[i], columns[j], nominal_columns, theil_u)
+                val_1, val_2 = compute_associations(
+                    dataset, columns[i], columns[j], nominal_columns, theil_u
+                )
                 corr[columns[j]][columns[i]] = val_1
                 corr[columns[i]][columns[j]] = val_2
 
     corr.fillna(value=np.nan, inplace=True)
     if mark_columns:
-        marked_columns = ['{} (nom)'.format(col) if col in nominal_columns else '{} (con)'.format(col) for col in columns]
+        marked_columns = [
+            "{} (nom)".format(col) if col in nominal_columns else "{} (con)".format(col)
+            for col in columns
+        ]
         corr.columns = marked_columns
         corr.index = marked_columns
     if return_results:
@@ -495,8 +524,10 @@ def clean_correlations(df_cor: pd.DataFrame) -> pd.DataFrame:
     df_mean.rename(columns={"Correlation": "Cor_mean"}, inplace=True)
     df_cor = pd.merge(df_cor, df_mean, how="left", on="index")
 
-    df_cor = df_cor[(df_cor["Var_1"] < df_cor["Var_2"]) |
-                    (np.abs(df_cor["Correlation"] - df_cor["Cor_mean"]) > 0.000001)]
+    df_cor = df_cor[
+        (df_cor["Var_1"] < df_cor["Var_2"])
+        | (np.abs(df_cor["Correlation"] - df_cor["Cor_mean"]) > 0.000001)
+    ]
 
     # drop the mean column (only used to find duplicates)
     df_cor.drop(["index", "Cor_mean"], axis=1, inplace=True)
@@ -526,7 +557,9 @@ def build_buckets(df, col, step_size, min_val=None, max_val=None, delete=False):
         if float(step_size * factor).is_integer():
             break
         if factor == 1000:
-            raise ValueError("Only use step sizes that can be transformed into an integer by multiplying with 1000")
+            raise ValueError(
+                "Only use step sizes that can be transformed into an integer by multiplying with 1000"
+            )
 
     df[col] *= factor
     step_size *= factor
@@ -556,15 +589,20 @@ def build_buckets(df, col, step_size, min_val=None, max_val=None, delete=False):
 
     return df[col]
 
+
 if __name__ == "__main__":
 
     import pandas as pd
 
     # categorical only
-    df = pd.DataFrame({"nomA": ["A"] * 10 + ["B"] * 10, "nomB": ["C"] * 10 + ["D"] * 10})
+    df = pd.DataFrame(
+        {"nomA": ["A"] * 10 + ["B"] * 10, "nomB": ["C"] * 10 + ["D"] * 10}
+    )
     associations(df, nominal_columns="all", theil_u=True, return_results=True)
 
-    df = pd.DataFrame({"nomA": ["A"] * 10 + ["B"] * 10, "nomB": ["C"] * 5 + ["D"] * 5 + ["E"] * 10})
+    df = pd.DataFrame(
+        {"nomA": ["A"] * 10 + ["B"] * 10, "nomB": ["C"] * 5 + ["D"] * 5 + ["E"] * 10}
+    )
     associations(df, nominal_columns="all", theil_u=True, return_results=True)
 
     # numerical only
@@ -575,6 +613,10 @@ if __name__ == "__main__":
     df = pd.DataFrame({"nomA": ["A"] * 10 + ["B"] * 10, "numB": -1 * np.arange(20)})
     associations(df, nominal_columns=["nomA"], theil_u=True, return_results=True)
 
-    df = pd.DataFrame({"nomA": ["A"] * 10 + ["B"] * 10, "numB": list(np.arange(10)) + list(np.arange(10))})
+    df = pd.DataFrame(
+        {
+            "nomA": ["A"] * 10 + ["B"] * 10,
+            "numB": list(np.arange(10)) + list(np.arange(10)),
+        }
+    )
     associations(df, nominal_columns=["nomA"], theil_u=True, return_results=True)
-

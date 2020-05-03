@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # import packages
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def get_table(df_all_matches, week=None, side=None):
@@ -22,7 +22,7 @@ def get_table(df_all_matches, week=None, side=None):
             concededGoals=("oppScore", "sum"),
             goalsDiff=("scoreDiff", "sum"),
             points=("points", "sum"),
-            matches=("teamId", "count")
+            matches=("teamId", "count"),
         )
         .reset_index()
     )

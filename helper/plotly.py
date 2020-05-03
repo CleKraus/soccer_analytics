@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 # import packages
+import math
+
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 import ruamel.yaml
 import scipy.spatial
-import math
-import plotly.graph_objects as go
 
 import helper.event_data as ed_help
 import helper.general as gen_help
@@ -34,12 +35,8 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
     layout = go.Layout(
         # make sure the field is green
         plot_bgcolor="rgba(0,255,112,1)",
-        xaxis=dict(range=[0, len_field],
-                   showgrid=False,
-                   showticklabels=False),
-        yaxis=dict(range=[0, wid_field],
-                   showgrid=False,
-                   showticklabels=False),
+        xaxis=dict(range=[0, len_field], showgrid=False, showticklabels=False),
+        yaxis=dict(range=[0, wid_field], showgrid=False, showticklabels=False),
     )
 
     # create an empty figure for which only the layout is set
@@ -54,14 +51,13 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             y0=0,
             x1=len_field / 2,
             y1=wid_field,
-            line=dict(
-                color="white",
-                width=2
-            )))
+            line=dict(color="white", width=2),
+        )
+    )
 
     # add left penalty area
     ########################
-    y_box = ((wid_field - 40.32) / 2)
+    y_box = (wid_field - 40.32) / 2
     x_vals = [0, 16, 16, 0]
     y_vals = [wid_field - y_box, wid_field - y_box, y_box, y_box]
 
@@ -74,17 +70,20 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
                 y0=y_vals[i],
                 x1=x_vals[i + 1],
                 y1=y_vals[i + 1],
-                line=dict(
-                    color="white",
-                    width=2
-                )))
+                line=dict(color="white", width=2),
+            )
+        )
 
     # add left goal area
     ####################
     y_small_box = 7.32 / 2 + 5.5
     x_vals = [0, 5.5, 5.5, 0]
-    y_vals = [wid_field / 2 - y_small_box, wid_field / 2 - y_small_box, wid_field / 2 + y_small_box,
-              wid_field / 2 + y_small_box]
+    y_vals = [
+        wid_field / 2 - y_small_box,
+        wid_field / 2 - y_small_box,
+        wid_field / 2 + y_small_box,
+        wid_field / 2 + y_small_box,
+    ]
 
     for i in range(len(x_vals) - 1):
         fig.add_shape(
@@ -95,10 +94,9 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
                 y0=y_vals[i],
                 x1=x_vals[i + 1],
                 y1=y_vals[i + 1],
-                line=dict(
-                    color="white",
-                    width=2
-                )))
+                line=dict(color="white", width=2),
+            )
+        )
 
     # add right penalty area
     ########################
@@ -114,17 +112,20 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
                 y0=y_vals[i],
                 x1=x_vals[i + 1],
                 y1=y_vals[i + 1],
-                line=dict(
-                    color="white",
-                    width=2
-                )))
+                line=dict(color="white", width=2),
+            )
+        )
 
     # add right goal area
     #####################
     y_small_box = 7.32 / 2 + 5.5
     x_vals = [len_field, len_field - 5.5, len_field - 5.5, len_field]
-    y_vals = [wid_field / 2 - y_small_box, wid_field / 2 - y_small_box, wid_field / 2 + y_small_box,
-              wid_field / 2 + y_small_box]
+    y_vals = [
+        wid_field / 2 - y_small_box,
+        wid_field / 2 - y_small_box,
+        wid_field / 2 + y_small_box,
+        wid_field / 2 + y_small_box,
+    ]
 
     for i in range(len(x_vals) - 1):
         fig.add_shape(
@@ -135,10 +136,9 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
                 y0=y_vals[i],
                 x1=x_vals[i + 1],
                 y1=y_vals[i + 1],
-                line=dict(
-                    color="white",
-                    width=2
-                )))
+                line=dict(color="white", width=2),
+            )
+        )
 
     # add left penalty point
     ########################
@@ -157,7 +157,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             x1=x_vals[1],
             y1=y_vals[1],
             line_color="white",
-            fillcolor="white"
+            fillcolor="white",
         )
     )
 
@@ -178,7 +178,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             x1=x_vals[1],
             y1=y_vals[1],
             line_color="white",
-            fillcolor="white"
+            fillcolor="white",
         )
     )
 
@@ -198,7 +198,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             x1=x_vals[1],
             y1=y_vals[1],
             line_color="white",
-            fillcolor="white"
+            fillcolor="white",
         )
     )
 
@@ -208,8 +208,8 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
     # radius of the center circle (in meters)
     rad_circle = 9.15
 
-    circle_y = (wid_field / 2 - rad_circle)
-    circle_x = (len_field / 2 - rad_circle)
+    circle_y = wid_field / 2 - rad_circle
+    circle_x = len_field / 2 - rad_circle
 
     fig.add_shape(
         dict(
@@ -220,7 +220,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             y0=circle_y,
             x1=len_field - circle_x,
             y1=wid_field - circle_y,
-            line_color="white"
+            line_color="white",
         )
     )
 
@@ -230,10 +230,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             shape["layer"] = "below"
 
     # update the layout such that the field looks symmetrical
-    fig.update_layout(
-        autosize=False,
-        width=len_field * 8,
-        height=wid_field * 9)
+    fig.update_layout(autosize=False, width=len_field * 8, height=wid_field * 9)
 
     return fig
 
@@ -242,8 +239,11 @@ def _build_hover_text(row, dict_info):
     text = ""
     for key in dict_info.keys():
         if "display_type" in dict_info[key]:
-            text += "{}: {:^{display_type}}<br />".format(key, row[dict_info[key]["values"]],
-                                                          display_type=dict_info[key]["display_type"])
+            text += "{}: {:^{display_type}}<br />".format(
+                key,
+                row[dict_info[key]["values"]],
+                display_type=dict_info[key]["display_type"],
+            )
         else:
             text += "{}: {}<br />".format(key, row[dict_info[key]["values"]])
     return text
@@ -264,12 +264,13 @@ def prepare_event_plot(df, x_col, y_col, label_info=None, left_team=None):
     """
 
     if label_info is None:
-        label_info = {"Time": {"values": "eventSec", "display_type": ".1f"},
-                      "Event": {"values": "subEventName"},
-                      "Player": {"values": "playerName"},
-                      "Position": {"values": "playerPosition"},
-                      "EventId": {"values": "id"}
-                      }
+        label_info = {
+            "Time": {"values": "eventSec", "display_type": ".1f"},
+            "Event": {"values": "subEventName"},
+            "Player": {"values": "playerName"},
+            "Position": {"values": "playerPosition"},
+            "EventId": {"values": "id"},
+        }
 
     with open("config.yml", "r", encoding="utf-8") as f:
         config = ruamel.yaml.YAML().load(f)
@@ -285,8 +286,16 @@ def prepare_event_plot(df, x_col, y_col, label_info=None, left_team=None):
     df["id"] = df["id"].astype(str)
 
     # make sure the left team is always playing left to right and the other team right to left
-    df[x_col] = np.where(df["teamId"] != df["leftTeamId"], config["general"]["field_length"] - df[x_col], df[x_col])
-    df[y_col] = np.where(df["teamId"] == df["leftTeamId"], config["general"]["field_width"] - df[y_col], df[y_col])
+    df[x_col] = np.where(
+        df["teamId"] != df["leftTeamId"],
+        config["general"]["field_length"] - df[x_col],
+        df[x_col],
+    )
+    df[y_col] = np.where(
+        df["teamId"] == df["leftTeamId"],
+        config["general"]["field_width"] - df[y_col],
+        df[y_col],
+    )
 
     # make sure that duels are mapped together - if not we would have two points at exactly the same position
     df_duel = df[df["eventName"] == "Duel"].copy()
@@ -294,11 +303,19 @@ def prepare_event_plot(df, x_col, y_col, label_info=None, left_team=None):
     df_duel[y_col] = np.round(df_duel[y_col], 2)
     df_duel["playerName"].fillna("", inplace=True)
     df_duel["playerPosition"].fillna("", inplace=True)
-    df_group_duel = df_duel.groupby([x_col, y_col]).agg({"eventSec": "min",
-                                                         "playerName": " vs. ".join,
-                                                         "playerPosition": " & ".join,
-                                                         "teamId": "count",
-                                                         "id": " & ".join}).reset_index()
+    df_group_duel = (
+        df_duel.groupby([x_col, y_col])
+        .agg(
+            {
+                "eventSec": "min",
+                "playerName": " vs. ".join,
+                "playerPosition": " & ".join,
+                "teamId": "count",
+                "id": " & ".join,
+            }
+        )
+        .reset_index()
+    )
 
     # we delete all duels with only one player. Reason: We noticed that these duels often do not make a lot of
     # sense and their coordinates seem to be off...
@@ -316,9 +333,15 @@ def prepare_event_plot(df, x_col, y_col, label_info=None, left_team=None):
     df["eventSec"] = df["eventSec"] - min(df["eventSec"])
 
     # add the color of the marker
-    df["color"] = np.where(df["eventName"].isin(["Interruption", "Offside", "Foul"]), "yellow",
-                           np.where(df["teamId"] == -1, "black",
-                                    np.where(df["teamId"] == df["leftTeamId"], "blue", "red")))
+    df["color"] = np.where(
+        df["eventName"].isin(["Interruption", "Offside", "Foul"]),
+        "yellow",
+        np.where(
+            df["teamId"] == -1,
+            "black",
+            np.where(df["teamId"] == df["leftTeamId"], "blue", "red"),
+        ),
+    )
     df["labelText"] = np.where(df["color"].isin(["blue", "red"]), df["playerName"], "")
 
     # show the label (e.g. players name) either above or below the marker depending on the marker position on the field
@@ -345,28 +368,30 @@ def create_event_plot(df, x_col, y_col):
 
     # add all lines connecting the different markers on the field
     field.add_trace(
-        go.Scatter(showlegend=False,
-                   x=np.array(df[x_col]),
-                   y=np.array(df[y_col]),
-                   mode="lines",
-                   line=dict(color="black", width=1),
-                   hoverinfo='none'
-                   )
+        go.Scatter(
+            showlegend=False,
+            x=np.array(df[x_col]),
+            y=np.array(df[y_col]),
+            mode="lines",
+            line=dict(color="black", width=1),
+            hoverinfo="none",
+        )
     )
 
     # set all the markers; notice that the position + text of the label, the color of the marker and the
     # hover info needs to be part of the *df*
     field.add_trace(
-        go.Scatter(showlegend=False,
-                   x=np.array(df[x_col]),
-                   y=np.array(df[y_col]),
-                   mode="markers+text",
-                   text=np.array(df["labelText"]),
-                   textposition=np.array(df["positionLabel"]),
-                   marker=dict(color=np.array(df["color"]), size=12),
-                   hovertext=df["hoverInfo"],
-                   hoverinfo="text",
-                   )
+        go.Scatter(
+            showlegend=False,
+            x=np.array(df[x_col]),
+            y=np.array(df[y_col]),
+            mode="markers+text",
+            text=np.array(df["labelText"]),
+            textposition=np.array(df["positionLabel"]),
+            marker=dict(color=np.array(df["color"]), size=12),
+            hovertext=df["hoverInfo"],
+            hoverinfo="text",
+        )
     )
     return field
 
@@ -405,7 +430,9 @@ def prepare_event_animation(df, x_col_bef, x_col_aft, y_col_bef, y_col_aft):
     return df
 
 
-def _get_ball_position_per_frame(df, total_seconds, fps, x_col_bef, x_col_aft, y_col_bef, y_col_aft):
+def _get_ball_position_per_frame(
+    df, total_seconds, fps, x_col_bef, x_col_aft, y_col_bef, y_col_aft
+):
     """
     Helper function to compute the ball position for each frame. Function is needed as part of the
     "create_event_animation" function.
@@ -458,11 +485,15 @@ def _get_ball_position_per_frame(df, total_seconds, fps, x_col_bef, x_col_aft, y
     return ball_positions
 
 
-def create_event_animation(df, total_seconds, fps=10,
-                           x_col_bef="posBeforeXMeters",
-                           x_col_aft="posAfterXMeters",
-                           y_col_bef="posBeforeYMeters",
-                           y_col_aft="posAfterYMeters"):
+def create_event_animation(
+    df,
+    total_seconds,
+    fps=10,
+    x_col_bef="posBeforeXMeters",
+    x_col_aft="posAfterXMeters",
+    y_col_bef="posBeforeYMeters",
+    y_col_aft="posAfterYMeters",
+):
     """
     Creation of an event animation, i.e. a sequence of events is animated on the field and connected through a line.
     Notice that unlike the create_xxx_plot functions a dictionary instead of a go.Figure is returned. This is due to
@@ -478,7 +509,9 @@ def create_event_animation(df, total_seconds, fps=10,
              plotly.offline.iplot(animation, validate=False, auto_play=False)
     """
     # get the ball position in each picture
-    ball_positions = _get_ball_position_per_frame(df, total_seconds, fps, x_col_bef, x_col_aft, y_col_bef, y_col_aft)
+    ball_positions = _get_ball_position_per_frame(
+        df, total_seconds, fps, x_col_bef, x_col_aft, y_col_bef, y_col_aft
+    )
 
     # compute data for first picture
     ################################
@@ -491,7 +524,7 @@ def create_event_animation(df, total_seconds, fps=10,
         y=np.array(tmp_df[y_col_bef]),
         mode="lines",
         line=dict(color="black", width=1),
-        hoverinfo="none"
+        hoverinfo="none",
     )
 
     data.append(line_data)
@@ -502,7 +535,7 @@ def create_event_animation(df, total_seconds, fps=10,
         y=np.array([ball_positions[0][3]]),
         mode="markers",
         marker=dict(color="white", size=15),
-        hoverinfo="none"
+        hoverinfo="none",
     )
     data.append(ball_data)
 
@@ -528,7 +561,7 @@ def create_event_animation(df, total_seconds, fps=10,
         sec = i / fps
 
         amount_player = len(df[df["eventSecNew"] <= sec])
-        tmp_df = df.iloc[:(amount_player + 1)].copy()
+        tmp_df = df.iloc[: (amount_player + 1)].copy()
 
         x_pos = np.array(tmp_df[x_col_bef])
         y_pos = np.array(tmp_df[y_col_bef])
@@ -550,7 +583,7 @@ def create_event_animation(df, total_seconds, fps=10,
             y=np.array([ball_positions[i][3]]),
             mode="markers",
             marker=dict(color="white", size=14),
-            hoverinfo="none"
+            hoverinfo="none",
         )
 
         x_pos_line = np.array(x_pos)
@@ -564,12 +597,10 @@ def create_event_animation(df, total_seconds, fps=10,
             y=y_pos_line,
             mode="lines",
             line=dict(color="black", width=1),
-            hoverinfo="none"
+            hoverinfo="none",
         )
 
-        frame = dict(
-            data=[line_data, ball_data, player_data]
-        )
+        frame = dict(data=[line_data, ball_data, player_data])
 
         frames.append(frame)
 
@@ -586,25 +617,39 @@ def create_event_animation(df, total_seconds, fps=10,
         width=field["layout"]["width"],
         height=field["layout"]["height"],
         autosize=field["layout"]["autosize"],
-        updatemenus=[dict(
-            type="buttons",
-            buttons=[dict(label="Play",
-                          method="animate",
-                          args=[None,
-                                {"frame": {"duration": 100, "redraw": False}, "fromcurrent": True}, ]),
-                     dict(label="Pause",
-                          method="animate",
-                          args=[[None], {"frame": {"duration": 0, "redraw": False},
-                                         "mode": "immediate",
-                                         "transition": {"duration": 0}}])
-                     ])],
+        updatemenus=[
+            dict(
+                type="buttons",
+                buttons=[
+                    dict(
+                        label="Play",
+                        method="animate",
+                        args=[
+                            None,
+                            {
+                                "frame": {"duration": 100, "redraw": False},
+                                "fromcurrent": True,
+                            },
+                        ],
+                    ),
+                    dict(
+                        label="Pause",
+                        method="animate",
+                        args=[
+                            [None],
+                            {
+                                "frame": {"duration": 0, "redraw": False},
+                                "mode": "immediate",
+                                "transition": {"duration": 0},
+                            },
+                        ],
+                    ),
+                ],
+            )
+        ],
     )
 
-    fig = dict(
-        data=data,
-        layout=layout,
-        frames=frames
-    )
+    fig = dict(data=data, layout=layout, frames=frames)
 
     return fig
 
@@ -616,36 +661,71 @@ def _calculate_bucket_for_position(series, nb_buckets, min_pos_val, max_pos_val)
     df_buckets["id"] = np.arange(len(buckets) - 1)
     df_buckets["minValueZone"] = list(buckets)[:-1]
     df_buckets["maxValueZone"] = list(buckets)[1:]
-    df_buckets["meanValueZone"] = (df_buckets["minValueZone"] + df_buckets["maxValueZone"]) / 2
+    df_buckets["meanValueZone"] = (
+        df_buckets["minValueZone"] + df_buckets["maxValueZone"]
+    ) / 2
 
     buckets[-1] = buckets[-1] + 0.001
 
     return pd.cut(series, buckets, labels=False, include_lowest=True), df_buckets
 
 
-def prepare_heatmap(df, col_x, col_y, nb_buckets_x, nb_buckets_y, agg_type="count", agg_col=None, return_df=False,
-                    min_val_x=0, max_val_x=105, min_val_y=0, max_val_y=68):
+def prepare_heatmap(
+    df,
+    col_x,
+    col_y,
+    nb_buckets_x,
+    nb_buckets_y,
+    agg_type="count",
+    agg_col=None,
+    return_df=False,
+    min_val_x=0,
+    max_val_x=105,
+    min_val_y=0,
+    max_val_y=68,
+):
     df = df.copy()
 
-    df[col_x + "Zone"], df_lookup_x_buckets = _calculate_bucket_for_position(df[col_x], nb_buckets_x, min_val_x,
-                                                                             max_val_x)
-    df[col_y + "Zone"], df_lookup_y_buckets = _calculate_bucket_for_position(df[col_y], nb_buckets_y, min_val_y,
-                                                                             max_val_y)
+    df[col_x + "Zone"], df_lookup_x_buckets = _calculate_bucket_for_position(
+        df[col_x], nb_buckets_x, min_val_x, max_val_x
+    )
+    df[col_y + "Zone"], df_lookup_y_buckets = _calculate_bucket_for_position(
+        df[col_y], nb_buckets_y, min_val_y, max_val_y
+    )
 
     if agg_col is None:
         agg_col = col_x + "Zone"
 
-    df_pos = df.groupby([col_x + "Zone", col_y + "Zone"]). \
-        agg(aggVal=(agg_col, agg_type)).reset_index()
+    df_pos = (
+        df.groupby([col_x + "Zone", col_y + "Zone"])
+        .agg(aggVal=(agg_col, agg_type))
+        .reset_index()
+    )
 
-    df_all_pos = pd.DataFrame([(x, y) for x in df_lookup_x_buckets["id"] for y in df_lookup_y_buckets["id"]],
-                              columns=[col_x + "Zone", col_y + "Zone"])
+    df_all_pos = pd.DataFrame(
+        [(x, y) for x in df_lookup_x_buckets["id"] for y in df_lookup_y_buckets["id"]],
+        columns=[col_x + "Zone", col_y + "Zone"],
+    )
 
-    df_lookup_x_buckets.rename(columns={"id": col_x + "Zone", "meanValueZone": col_x + "ZoneMean"}, inplace=True)
-    df_lookup_y_buckets.rename(columns={"id": col_y + "Zone", "meanValueZone": col_y + "ZoneMean"}, inplace=True)
+    df_lookup_x_buckets.rename(
+        columns={"id": col_x + "Zone", "meanValueZone": col_x + "ZoneMean"},
+        inplace=True,
+    )
+    df_lookup_y_buckets.rename(
+        columns={"id": col_y + "Zone", "meanValueZone": col_y + "ZoneMean"},
+        inplace=True,
+    )
 
-    df_all_pos = pd.merge(df_all_pos, df_lookup_x_buckets[[col_x + "Zone", col_x + "ZoneMean"]], how="left")
-    df_all_pos = pd.merge(df_all_pos, df_lookup_y_buckets[[col_y + "Zone", col_y + "ZoneMean"]], how="left")
+    df_all_pos = pd.merge(
+        df_all_pos,
+        df_lookup_x_buckets[[col_x + "Zone", col_x + "ZoneMean"]],
+        how="left",
+    )
+    df_all_pos = pd.merge(
+        df_all_pos,
+        df_lookup_y_buckets[[col_y + "Zone", col_y + "ZoneMean"]],
+        how="left",
+    )
 
     df_pos = pd.merge(df_all_pos, df_pos, how="left").fillna(0)
     df_img = df_pos.pivot(col_y + "ZoneMean", col_x + "ZoneMean", "aggVal")
@@ -661,7 +741,9 @@ def prepare_heatmap(df, col_x, col_y, nb_buckets_x, nb_buckets_y, agg_type="coun
     return img, x, y
 
 
-def create_heatmap(x, y, z, dict_info, title_name=None, colour_scale=None, legend_name=None):
+def create_heatmap(
+    x, y, z, dict_info, title_name=None, colour_scale=None, legend_name=None
+):
 
     # Prepare the text to be shown when hovering over the heatmap
     hovertext = list()
@@ -670,18 +752,17 @@ def create_heatmap(x, y, z, dict_info, title_name=None, colour_scale=None, legen
         for idx in range(len(z[1])):
             text = ""
             for key in dict_info.keys():
-                text += "{}: {:^{display_type}}<br />".format(key, dict_info[key]["values"][idy][idx],
-                                                              display_type=dict_info[key]["display_type"])
+                text += "{}: {:^{display_type}}<br />".format(
+                    key,
+                    dict_info[key]["values"][idy][idx],
+                    display_type=dict_info[key]["display_type"],
+                )
             hovertext[-1].append(text)
 
     # get the empty soccer field
     fig = create_empty_field()
     # overlay field with the heatmap
-    fig.add_trace(
-        go.Heatmap(x=x, y=y, z=z,
-                   hoverinfo="text",
-                   text=hovertext)
-    )
+    fig.add_trace(go.Heatmap(x=x, y=y, z=z, hoverinfo="text", text=hovertext))
 
     if colour_scale is not None:
         fig["data"][-1]["zmin"] = colour_scale[0]
@@ -690,11 +771,13 @@ def create_heatmap(x, y, z, dict_info, title_name=None, colour_scale=None, legen
     if title_name is not None:
         fig.update_layout(
             title={
-                'text': title_name,
-                'y': 0.9,
-                'x': 0.5,
-                'xanchor': 'center',
-                'yanchor': 'top'})
+                "text": title_name,
+                "y": 0.9,
+                "x": 0.5,
+                "xanchor": "center",
+                "yanchor": "top",
+            }
+        )
 
     if legend_name is not None:
         fig.update_layout(
@@ -709,7 +792,7 @@ def create_heatmap(x, y, z, dict_info, title_name=None, colour_scale=None, legen
                     xref="paper",
                     yref="paper",
                     xanchor="center",
-                    yanchor="top"
+                    yanchor="top",
                 )
             ]
         )
@@ -770,42 +853,58 @@ def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=Non
 
     # only consider players that are plotted
     players = df_stats["playerId"].unique()
-    df_passes = df_passes[df_passes["player1Id"].isin(players) &
-                          df_passes["player2Id"].isin(players)]
+    df_passes = df_passes[
+        df_passes["player1Id"].isin(players) & df_passes["player2Id"].isin(players)
+    ]
 
     # get the centroid for each of the players
     df_centroid = df_stats[["playerId", "centroidX", "centroidY"]].copy()
 
     # add the position of player 1
-    df_pos_player1 = df_centroid.rename(columns={"playerId": "player1Id",
-                                                 "centroidX": "centroidX1",
-                                                 "centroidY": "centroidY1"})
-    df_pass_share = pd.merge(df_passes,
-                             df_pos_player1,
-                             on="player1Id")
+    df_pos_player1 = df_centroid.rename(
+        columns={
+            "playerId": "player1Id",
+            "centroidX": "centroidX1",
+            "centroidY": "centroidY1",
+        }
+    )
+    df_pass_share = pd.merge(df_passes, df_pos_player1, on="player1Id")
 
     # add the position of player 2
-    df_pos_player2 = df_centroid.rename(columns={"playerId": "player2Id",
-                                                 "centroidX": "centroidX2",
-                                                 "centroidY": "centroidY2"})
-    df_pass_share = pd.merge(df_pass_share,
-                             df_pos_player2,
-                             on="player2Id")
+    df_pos_player2 = df_centroid.rename(
+        columns={
+            "playerId": "player2Id",
+            "centroidX": "centroidX2",
+            "centroidY": "centroidY2",
+        }
+    )
+    df_pass_share = pd.merge(df_pass_share, df_pos_player2, on="player2Id")
 
     # compute the share of the passes for each player tuple
-    df_pass_share["sharePasses"] = df_pass_share["totalPasses"] / sum(df_pass_share["totalPasses"])
+    df_pass_share["sharePasses"] = df_pass_share["totalPasses"] / sum(
+        df_pass_share["totalPasses"]
+    )
 
     # return only those passes such that *show_top_k_percent* of all passes are being returned
     if show_top_k_percent is not None:
         df_pass_share.sort_values("sharePasses", inplace=True, ascending=False)
         df_pass_share["cumShare"] = df_pass_share["sharePasses"].cumsum()
-        df_pass_share = df_pass_share[df_pass_share["cumShare"] * 100 < show_top_k_percent].copy()
+        df_pass_share = df_pass_share[
+            df_pass_share["cumShare"] * 100 < show_top_k_percent
+        ].copy()
 
     return df_pass_share
 
 
-def create_position_plot(df_stats, title=None, dict_info=None, colour_kpi=None, colour_scale=None,
-                         df_passes=None, convex_hull=False):
+def create_position_plot(
+    df_stats,
+    title=None,
+    dict_info=None,
+    colour_kpi=None,
+    colour_scale=None,
+    df_passes=None,
+    convex_hull=False,
+):
     """
     Creation of the position plot, i.e. each player of the team is plotted on the field depending on their position.
     :param df_stats: (pd.DataFrame) Data frame with stats on each player. Usually output of *compute_statistics* (see
@@ -821,14 +920,18 @@ def create_position_plot(df_stats, title=None, dict_info=None, colour_kpi=None, 
     :return: go.Figure with the position plot
     """
     # Default dictionary for hover information
-    default_dict = {"Player name": {"values": "playerName"},
-                    "Total passes": {"values": "totalPasses", "display_type": ".0f"},
-                    "Accurate passes (in %)": {"values": "shareAccuratePasses", "display_type": ".1f"},
-                    "Total shots": {"values": "totalShots", "display_type": ".0f"},
-                    "Total goals": {"values": "totalGoals", "display_type": ".0f"},
-                    "Total duels": {"values": "totalDuels", "display_type": ".0f"},
-                    "Minutes played": {"values": "minutesPlayed", "display_type": ".0f"}
-                    }
+    default_dict = {
+        "Player name": {"values": "playerName"},
+        "Total passes": {"values": "totalPasses", "display_type": ".0f"},
+        "Accurate passes (in %)": {
+            "values": "shareAccuratePasses",
+            "display_type": ".1f",
+        },
+        "Total shots": {"values": "totalShots", "display_type": ".0f"},
+        "Total goals": {"values": "totalGoals", "display_type": ".0f"},
+        "Total duels": {"values": "totalDuels", "display_type": ".0f"},
+        "Minutes played": {"values": "minutesPlayed", "display_type": ".0f"},
+    }
 
     df_stats = df_stats.copy()
 
@@ -840,18 +943,25 @@ def create_position_plot(df_stats, title=None, dict_info=None, colour_kpi=None, 
     # compute the convex hull and add it to the plot
     ################################################
     if convex_hull:
-        centroids = df_stats[df_stats["playerPosition"] != "GK"][["centroidX", "centroidY"]].to_numpy()
+        centroids = df_stats[df_stats["playerPosition"] != "GK"][
+            ["centroidX", "centroidY"]
+        ].to_numpy()
         hull = scipy.spatial.ConvexHull(centroids)
         convex_x, convex_y = centroids[hull.vertices, 0], centroids[hull.vertices, 1]
 
-        field.add_trace(go.Scatter(x=convex_x, y=convex_y,
-                                   fill="toself",
-                                   mode="lines",
-                                   showlegend=False,
-                                   fillcolor="black",
-                                   opacity=0.2,
-                                   name="",
-                                   line_color="black"))
+        field.add_trace(
+            go.Scatter(
+                x=convex_x,
+                y=convex_y,
+                fill="toself",
+                mode="lines",
+                showlegend=False,
+                fillcolor="black",
+                opacity=0.2,
+                name="",
+                line_color="black",
+            )
+        )
 
     # add passes between the players
     ################################
@@ -863,24 +973,29 @@ def create_position_plot(df_stats, title=None, dict_info=None, colour_kpi=None, 
         df_passes["centroidY1"] = 68 - df_passes["centroidY1"]
         df_passes["centroidY2"] = 68 - df_passes["centroidY2"]
         for _, row in df_passes.iterrows():
-            field.add_trace(go.Scatter(
-                showlegend=False,
-                x=[row["centroidX1"], row["centroidX2"]],
-                y=[row["centroidY1"], row["centroidY2"]],
-                mode='lines',
-                line=dict(color='red', width=50 * row["sharePasses"])))
+            field.add_trace(
+                go.Scatter(
+                    showlegend=False,
+                    x=[row["centroidX1"], row["centroidX2"]],
+                    y=[row["centroidY1"], row["centroidY2"]],
+                    mode="lines",
+                    line=dict(color="red", width=50 * row["sharePasses"]),
+                )
+            )
 
     # set the actual plot
     ############################
-    field.add_trace(go.Scatter(
-        x=df_stats["centroidX"],
-        y=df_stats["centroidY"],
-        mode="markers+text",
-        text=df_stats["playerName"],
-        textposition="bottom center",
-        name="",
-        marker=dict(color="red", size=12)
-    ))
+    field.add_trace(
+        go.Scatter(
+            x=df_stats["centroidX"],
+            y=df_stats["centroidY"],
+            mode="markers+text",
+            text=df_stats["playerName"],
+            textposition="bottom center",
+            name="",
+            marker=dict(color="red", size=12),
+        )
+    )
 
     # create and add the hover information
     ######################################
@@ -898,8 +1013,11 @@ def create_position_plot(df_stats, title=None, dict_info=None, colour_kpi=None, 
 
                 # check whether there is a display type or not
                 if "display_type" in dict_info[key].keys():
-                    text += "{}: {:^{display_type}}<br />".format(key, row[dict_info[key]["values"]],
-                                                                  display_type=dict_info[key]["display_type"])
+                    text += "{}: {:^{display_type}}<br />".format(
+                        key,
+                        row[dict_info[key]["values"]],
+                        display_type=dict_info[key]["display_type"],
+                    )
                 else:
                     text += "{}: {}<br />".format(key, row[dict_info[key]["values"]])
             hovertext.append(text)
@@ -908,10 +1026,9 @@ def create_position_plot(df_stats, title=None, dict_info=None, colour_kpi=None, 
 
     # update the colour of the markers
     if colour_kpi is not None:
-        marker = dict(color=df_stats[colour_kpi],
-                      colorscale='Reds',
-                      showscale=True,
-                      size=12)
+        marker = dict(
+            color=df_stats[colour_kpi], colorscale="Reds", showscale=True, size=12
+        )
 
         if colour_scale is not None:
             marker["cmin"] = colour_scale[0]
@@ -920,7 +1037,9 @@ def create_position_plot(df_stats, title=None, dict_info=None, colour_kpi=None, 
         field.data[-1]["marker"] = marker
 
         # get a nice legend name based on the dict_info
-        nice_legend_name = [key for key in dict_info if dict_info[key]["values"] == colour_kpi]
+        nice_legend_name = [
+            key for key in dict_info if dict_info[key]["values"] == colour_kpi
+        ]
         if len(nice_legend_name) > 0:
             legend_name = nice_legend_name[0]
         else:
@@ -938,7 +1057,7 @@ def create_position_plot(df_stats, title=None, dict_info=None, colour_kpi=None, 
                     xref="paper",
                     yref="paper",
                     xanchor="center",
-                    yanchor="top"
+                    yanchor="top",
                 )
             ]
         )
@@ -948,11 +1067,13 @@ def create_position_plot(df_stats, title=None, dict_info=None, colour_kpi=None, 
     if title is not None:
         field.update_layout(
             title={
-                'text': title,
-                'y': 0.9,
-                'x': 0.5,
-                'xanchor': 'center',
-                'yanchor': 'top'})
+                "text": title,
+                "y": 0.9,
+                "x": 0.5,
+                "xanchor": "center",
+                "yanchor": "top",
+            }
+        )
 
     return field
 
@@ -962,7 +1083,7 @@ def _hex_to_rgb(hex):
     Helper function to convert hex colour into RGB vector
     """
     # Pass 16 to the integer function for change of base
-    return [int(hex[i:i+2], 16) for i in range(1,6,2)]
+    return [int(hex[i : i + 2], 16) for i in range(1, 6, 2)]
 
 
 def _rgb_to_hex(rgb):
@@ -970,7 +1091,9 @@ def _rgb_to_hex(rgb):
     Helper function to convert RGB colour vector into hex
     """
     rgb = [int(x) for x in rgb]
-    return "#"+"".join(["0{0:x}".format(v) if v < 16 else "{0:x}".format(v) for v in rgb])
+    return "#" + "".join(
+        ["0{0:x}".format(v) if v < 16 else "{0:x}".format(v) for v in rgb]
+    )
 
 
 def colour_scale(start_hex, finish_hex, n=101):
@@ -990,8 +1113,7 @@ def colour_scale(start_hex, finish_hex, n=101):
     for t in range(1, n):
         # Interpolate RGB vector for color at the current value of t
         curr_vector = [
-          int(s[j] + (float(t)/(n-1))*(f[j]-s[j]))
-          for j in range(3)
+            int(s[j] + (float(t) / (n - 1)) * (f[j] - s[j])) for j in range(3)
         ]
         # Add it to our list of output colors
         rgb_list.append(curr_vector)
@@ -999,7 +1121,9 @@ def colour_scale(start_hex, finish_hex, n=101):
     return [_rgb_to_hex(RGB) for RGB in rgb_list]
 
 
-def prepare_pass_polar_plot(df, group_cols, length_scale_col, colour_col, colour_scale=None, centroids_xy=None):
+def prepare_pass_polar_plot(
+    df, group_cols, length_scale_col, colour_col, colour_scale=None, centroids_xy=None
+):
     """
     Preparation function for the polar plot (see function *create_pass_polar_plot*. One polar will be drawn per unique
     combination of *group_cols*
@@ -1025,7 +1149,9 @@ def prepare_pass_polar_plot(df, group_cols, length_scale_col, colour_col, colour
     #   180 or -180 degrees = backwards
     df["dx"] = df["posAfterXMeters"] - df["posBeforeXMeters"]
     df["dy"] = df["posAfterYMeters"] - df["posBeforeYMeters"]
-    df["degree"] = df.apply(lambda row: math.degrees(math.atan2(row["dy"], row["dx"])), axis=1)
+    df["degree"] = df.apply(
+        lambda row: math.degrees(math.atan2(row["dy"], row["dx"])), axis=1
+    )
 
     # put the degrees into 45 degree bins
     bins = np.arange(-202.5, 203, 45)
@@ -1034,15 +1160,22 @@ def prepare_pass_polar_plot(df, group_cols, length_scale_col, colour_col, colour
     df["degreeBin"] = np.where(df["degreeBin"] == -180, 180, df["degreeBin"])
 
     # group by group_cols and degree bins and compute relevant KPIs
-    df_group = df.groupby(group_cols + ["degreeBin"]). \
-        agg(totalPasses=("degreeBin", "size"),
+    df_group = (
+        df.groupby(group_cols + ["degreeBin"])
+        .agg(
+            totalPasses=("degreeBin", "size"),
             totalAccuratePasses=("accurate", "sum"),
             shareAccuratePasses=("accurate", "mean"),
-            meanLengthMeters=("lengthMeters", "mean")).reset_index()
+            meanLengthMeters=("lengthMeters", "mean"),
+        )
+        .reset_index()
+    )
     df_group["shareAccuratePasses"] *= 100
 
     # compute the scale factor (in [0,1]) which will define the length of each arrow in the polar graph
-    df_group["scaleFactor"] = df_group[length_scale_col] / df_group[length_scale_col].max()
+    df_group["scaleFactor"] = (
+        df_group[length_scale_col] / df_group[length_scale_col].max()
+    )
 
     # compute the centroid for each of the polar graphs
     # in case the centroid is given externally
@@ -1051,18 +1184,25 @@ def prepare_pass_polar_plot(df, group_cols, length_scale_col, colour_col, colour
         x_vals = centroids_xy[0]
         y_vals = centroids_xy[1]
 
-        df_group["centroidX"] = df_group["posBeforeXMetersZone"].map(lambda i: x_vals[i])
-        df_group["centroidY"] = df_group["posBeforeYMetersZone"].map(lambda i: y_vals[i])
+        df_group["centroidX"] = df_group["posBeforeXMetersZone"].map(
+            lambda i: x_vals[i]
+        )
+        df_group["centroidY"] = df_group["posBeforeYMetersZone"].map(
+            lambda i: y_vals[i]
+        )
 
     # or the centroid is already part of *df*
     elif "centroidX" in df.columns and "centroidY" in df.columns:
-        df_centroid = df.groupby(group_cols).agg(centroidX=("centroidX", "min"),
-                                                 centroidY=("centoridY", "min"))
+        df_centroid = df.groupby(group_cols).agg(
+            centroidX=("centroidX", "min"), centroidY=("centoridY", "min")
+        )
 
         df_group = pd.merge(df_group, df_centroid, how="left", on=group_cols)
 
     else:
-        raise ValueError("Centroids must either be part of *df* or given externally through *centroids_xy*")
+        raise ValueError(
+            "Centroids must either be part of *df* or given externally through *centroids_xy*"
+        )
 
     # set the colour value (number between 0 and 100) depending on the colour kpi
     df_group["colourCol"] = df_group[colour_col].copy()
@@ -1074,7 +1214,9 @@ def prepare_pass_polar_plot(df, group_cols, length_scale_col, colour_col, colour
     max_val = df_group["colourCol"].max()
     min_val = df_group["colourCol"].min()
 
-    df_group["colourValue"] = (df_group["colourCol"] - min_val) / (max_val - min_val) * 100
+    df_group["colourValue"] = (
+        (df_group["colourCol"] - min_val) / (max_val - min_val) * 100
+    )
 
     return df_group
 
@@ -1103,8 +1245,11 @@ def create_pass_polar_plot(df, dict_info=None, title_name=None):
 
             # check whether there is a display type or not
             if "display_type" in dict_info[key].keys():
-                text += "{}: {:^{display_type}}<br />".format(key, row[dict_info[key]["values"]],
-                                                              display_type=dict_info[key]["display_type"])
+                text += "{}: {:^{display_type}}<br />".format(
+                    key,
+                    row[dict_info[key]["values"]],
+                    display_type=dict_info[key]["display_type"],
+                )
             else:
                 text += "{}: {}<br />".format(key, row[dict_info[key]["values"]])
         hovertext.append(text)
@@ -1128,47 +1273,59 @@ def create_pass_polar_plot(df, dict_info=None, title_name=None):
         x_length = 3 * (y_length / 10)
 
         # set up the triangle
-        tri_x = [-x_length/2, 0, x_length/2, -x_length/2]
+        tri_x = [-x_length / 2, 0, x_length / 2, -x_length / 2]
         tri_y = [-y_length, 0, -y_length, -y_length]
 
         # rotate the triangle according to the degree
-        rot_x, rot_y = gen_help.rotate_vectors(tri_x, tri_y, math.radians(row["degreeBin"] - 90))
+        rot_x, rot_y = gen_help.rotate_vectors(
+            tri_x, tri_y, math.radians(row["degreeBin"] - 90)
+        )
 
         # add the center point to end up in the centroid
         x_vals = x_center + np.array(rot_x)
         y_vals = y_center + np.array(rot_y)
 
         # add the triangles with the hover text as traces
-        fig.add_trace(go.Scatter(x=x_vals,
-                                 y=y_vals,
-                                 showlegend=False,
-                                 mode="lines",
-                                 fill="toself",
-                                 fillcolor=colours[int(row["colourValue"])],
-                                 text=hovertext[i],
-                                 hoverinfo="text",
-                                 line_color=colours[int(row["colourValue"])]))
+        fig.add_trace(
+            go.Scatter(
+                x=x_vals,
+                y=y_vals,
+                showlegend=False,
+                mode="lines",
+                fill="toself",
+                fillcolor=colours[int(row["colourValue"])],
+                text=hovertext[i],
+                hoverinfo="text",
+                line_color=colours[int(row["colourValue"])],
+            )
+        )
 
     # add all the black dots in the middle of the polar plots
     df_dots = df[["centroidX", "centroidY"]].drop_duplicates()
 
     for i, row in df_dots.iterrows():
-        fig.add_trace(go.Scatter(x=[row["centroidX"]],
-                                 y=[row["centroidY"]],
-                                 fillcolor="black",
-                                 line_color="black",
-                                 showlegend=False,
-                                 hoverinfo="skip",
-                                 marker=dict(size=10)))
+        fig.add_trace(
+            go.Scatter(
+                x=[row["centroidX"]],
+                y=[row["centroidY"]],
+                fillcolor="black",
+                line_color="black",
+                showlegend=False,
+                hoverinfo="skip",
+                marker=dict(size=10),
+            )
+        )
 
     # add a title to the chart
     if title_name is not None:
         fig.update_layout(
             title={
-                'text': title_name,
-                'y': 0.9,
-                'x': 0.5,
-                'xanchor': 'center',
-                'yanchor': 'top'})
+                "text": title_name,
+                "y": 0.9,
+                "x": 0.5,
+                "xanchor": "center",
+                "yanchor": "top",
+            }
+        )
 
     return fig

@@ -1,6 +1,7 @@
+# import packages
+import pandas
 
 import helper.io as io_help
-import pandas
 
 
 def test_read_config():
@@ -50,4 +51,3 @@ def test_read_formation_data():
     df = io_help.read_formation_data(league)
 
     assert type(df) == pandas.core.frame.DataFrame
-

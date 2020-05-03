@@ -3,7 +3,6 @@ import pandas as pd
 
 
 class Matches:
-
     def __init__(self, fname):
         self.matches = pd.read_parquet(fname)
 
@@ -27,7 +26,9 @@ class Matches:
 
     def special_match(self, team_id, opp_id, side="home", cols=None):
 
-        df_match = self._filter_matches(["teamId", "oppTeamId", "side"], [team_id, opp_id, side])
+        df_match = self._filter_matches(
+            ["teamId", "oppTeamId", "side"], [team_id, opp_id, side]
+        )
 
         if cols is None:
             return df_match

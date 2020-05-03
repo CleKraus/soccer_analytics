@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # import packages
-import dash_bootstrap_components as dbc
 import base64
 import os
+
+import dash_bootstrap_components as dbc
 import dash_html_components as html
 import ruamel.yaml
 
@@ -27,13 +28,22 @@ def create_navigation_bar():
                                 html.Img(
                                     id="bundesliga",
                                     src="data:image/png;base64,{}".format(
-                                        base64.b64encode(open(
-                                            os.path.join(path_assets, config["assets"]["img_bundesliga"]),
-                                            "rb", ).read()).decode()
-                                    ), height="40px"
+                                        base64.b64encode(
+                                            open(
+                                                os.path.join(
+                                                    path_assets,
+                                                    config["assets"]["img_bundesliga"],
+                                                ),
+                                                "rb",
+                                            ).read()
+                                        ).decode()
+                                    ),
+                                    height="40px",
                                 )
                             ),
-                            dbc.Col(dbc.NavbarBrand("Soccer Analysis", className="ml-2")),
+                            dbc.Col(
+                                dbc.NavbarBrand("Soccer Analysis", className="ml-2")
+                            ),
                         ],
                         align="left",
                         no_gutters=True,
@@ -46,4 +56,3 @@ def create_navigation_bar():
         className="mb-5",
     )
     return navbar
-
