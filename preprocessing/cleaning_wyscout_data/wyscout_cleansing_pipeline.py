@@ -11,7 +11,7 @@ from preprocessing.cleaning_wyscout_data.team_data import cleanse_wyscout_team_d
 logging.basicConfig(level=logging.DEBUG)
 
 """
-# You can set your country here: Data is available for 
+You can set your country here: Data is available for 
     - Germany
     - Italy
     - England
