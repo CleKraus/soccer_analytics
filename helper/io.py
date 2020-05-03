@@ -157,7 +157,7 @@ def read_event_data(league, notebook=None):
         df = ml_help.from_dummy(df, ["leftFoot", "rightFoot", "head/body"], "bodyPartShot")
 
         # encode the column with a number
-        dict_body_part = {"Unknown": np.nan,
+        dict_body_part = {"Unknown": 0,
                           "leftFoot": 1,
                           "head/body": 2,
                           "rightFoot": 3}
