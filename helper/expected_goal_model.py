@@ -63,8 +63,12 @@ class ExpectedGoalModel(ABC):
         df["bodyPartShot"] = df.apply(self._transform_body_part_shot, axis=1)
 
         # dummy encode the body part
-        for col in ["head/body", "weakFoot", "strongFoot"]:
+        df["bodyPartShotCode"] = -1
+        for i, col in enumerate(["head/body", "weakFoot", "strongFoot"]):
             df[col] = 1 * (df["bodyPartShot"] == col)
+            df["bodyPartShotCode"] = np.where(
+                df["bodyPartShot"] == col, i, df["bodyPartShotCode"]
+            )
 
         return df
 
