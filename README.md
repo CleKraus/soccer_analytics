@@ -56,9 +56,9 @@ them. Challenges include:
 ### Heatmap
 ![](docs/img/heatmap_example.JPG)<!-- .element height="20%" width="20%" -->
 ### Passing map
-![](docs/img/passing_plot.JPG)<!-- .element height="20%" width="20%" -->
+![](docs/img/passing_plot.JPG)<!-- .element height="15%" width="15%" -->
 ### Polar charts   
-![](docs/img/polar_charts.JPG)<!-- .element height="20%" width="20%" -->
+![](docs/img/polar_charts.JPG)<!-- .element height="15%" width="15%" -->
 
 
 ## Installation
