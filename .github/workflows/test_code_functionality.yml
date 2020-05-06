@@ -51,3 +51,7 @@ jobs:
     - name: Test notebook expected goal logistic regression
       run: |
         py.test --nbval-lax notebooks/expected_goal_model_lr.ipynb
+
+    - name: Test notebook challenges with gradient boosting
+      run: |
+        py.test --nbval-lax notebooks/challenges_with_gradient_boosters.ipynb
