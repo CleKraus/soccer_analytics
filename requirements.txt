@@ -8,6 +8,7 @@ bleach==3.1.4
 certifi==2020.4.5.1
 chardet==3.0.4
 click==7.1.1
+cloudpickle==1.4.1
 colorama==0.4.3
 confuse==1.1.0
 coverage==5.1
@@ -44,6 +45,7 @@ jupyter-core==4.6.3
 jupyterlab==2.1.0
 jupyterlab-server==1.1.0
 kiwisolver==1.2.0
+lightgbm==2.3.1
 llvmlite==0.31.0
 MarkupSafe==1.1.1
 matplotlib==3.2.1
@@ -92,6 +94,7 @@ scikit-learn==0.22.2.post1
 scipy==1.4.1
 seaborn==0.10.0
 Send2Trash==1.5.0
+shap==0.35.0
 six==1.14.0
 statsmodels==0.11.1
 tangled-up-in-unicode==0.0.4
