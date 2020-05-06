@@ -130,6 +130,15 @@ def create_univariate_variable_graph(
 
 
 def combine_univariate_variable_graphs(figures, cols, rows, shared_axis=False):
+    """
+    Combine multiple univariate variable graphs into one figure
+    :param figures: (list) List of go.Figures containing univariate variable graphs. Length of list needs to match
+                     *cols* x *rows*
+    :param cols: (int) Number of columns  in which the figures should be aligned
+    :param rows: (int) Number of rows in which the figures should be aligned
+    :param shared_axis: (bool) Whether or not all graphs in one row share the same y-axis
+    :return: go.Figure containing all the *figures* in on picture
+    """
     titles = []
     for tmp_fig in figures:
         titles.append(tmp_fig["layout"]["title"]["text"])

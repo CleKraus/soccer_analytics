@@ -368,6 +368,9 @@ def create_empty_field(below=False, colour="green", line_colour=None, size=1, le
 
 
 def _build_hover_text(row, dict_info):
+    """
+    Helper function to build the hover text
+    """
     text = ""
     for key in dict_info.keys():
         if "display_type" in dict_info[key]:
@@ -790,6 +793,9 @@ def create_event_animation(
 
 
 def _calculate_bucket_for_position(series, nb_buckets, min_pos_val, max_pos_val):
+    """
+    Helper function to calculate the bucket for each position
+    """
     buckets = np.arange(min_pos_val, max_pos_val + 0.001, max_pos_val / nb_buckets)
 
     df_buckets = pd.DataFrame()
@@ -814,18 +820,36 @@ def prepare_heatmap(
     agg_type="count",
     agg_col=None,
     return_df=False,
-    min_val_x=0,
-    max_val_x=105,
-    min_val_y=0,
-    max_val_y=68,
+    length_field=105,
+    width_field=68,
 ):
+    """
+    Helper function to prepare a heatmap. It is most often used in combination with the function *create_heatmap*
+    below.
+    :param df: (pd.DataFrame) Data frame containing all the relevant data
+    :param col_x: (str) Column indicating the position in x-direction
+    :param col_y: (str) Column indicating the position in y-direction
+    :param nb_buckets_x: (int) Split the field into *nb_buckets_x* buckets in x-direction
+    :param nb_buckets_y: (int) Split the field into *nb_buckets_y* buckets in y-direction
+    :param agg_type: (str) Aggregation type, e.g. mean, median etc. If None, if defaults to *count*
+    :param agg_col: (str) Column name for which aggregation should be made. If None, number of appearances per grid
+                     cell are computed
+    :param return_df: (bool) If True, function returns *df* with additional columns indicating the grid cell
+    :param length_field (int) Length of the field in meters
+    :param width_field: (int) Width of the field in meters
+    :return: Returns three np.arrays for
+            1. The center points of the grid cells in x-direction
+            2. The center points of the grid cells in y-direction
+            3. The values for each grid cell
+    """
+
     df = df.copy()
 
     df[col_x + "Zone"], df_lookup_x_buckets = _calculate_bucket_for_position(
-        df[col_x], nb_buckets_x, min_val_x, max_val_x
+        df[col_x], nb_buckets_x, 0, length_field
     )
     df[col_y + "Zone"], df_lookup_y_buckets = _calculate_bucket_for_position(
-        df[col_y], nb_buckets_y, min_val_y, max_val_y
+        df[col_y], nb_buckets_y, 0, width_field
     )
 
     if agg_col is None:
@@ -866,7 +890,7 @@ def prepare_heatmap(
     df_img = df_pos.pivot(col_y + "ZoneMean", col_x + "ZoneMean", "aggVal")
 
     x = list(df_img.columns)
-    y = [max_val_y - x for x in df_img.index]
+    y = [width_field - x for x in df_img.index]
 
     img = np.array(df_img)
 
@@ -879,6 +903,18 @@ def prepare_heatmap(
 def create_heatmap(
     x, y, z, dict_info, title_name=None, colour_scale=None, legend_name=None, size=1
 ):
+    """
+    Function to create a coloured heatmap on top of a soccer field
+    :param x: (np.array) Center points of the grid cells in x-direction, i.e. length of the field
+    :param y: (np.array) Center points of the grid cells in y-direction, i.e. width of the field
+    :param z: (np.array) Two-dimensional array containing the values for all grid cells
+    :param dict_info: (dict) Defines what and how information should be shown when hovering over the grid cells
+    :param title_name: (str) Title to be added above the plot
+    :param colour_scale: (tuple) Contains the min and max values for the colour scale
+    :param legend_name: (str) Name to be added on top of the colour legend bar
+    :param size: (float) Relative size of the field
+    :return: go.Figure with a heatmap plotted on top of the soccer field
+    """
 
     # Prepare the text to be shown when hovering over the heatmap
     hovertext = list()
@@ -1364,7 +1400,7 @@ def create_pass_polar_plot(df, dict_info=None, title_name=None, size=1):
     conveys other information by using size and colour. Before running this function one usually needs to run the
     *prepare_pass_polar_plot* function
     :param df: (pd.DataFrame) Contains all relevant data; usually the output of the *prepare_pass_polar_plot* function
-    :param dict_info: (dict, optional) Defined what and how information should be shown when hovering over the players.
+    :param dict_info: (dict, optional) Defines what and how information should be shown when hovering over the players.
     :param title_name: (str) Title of the graph
     :param size: (float) Relative size of the plot
     :return: go.Figure containing the pass polar plot

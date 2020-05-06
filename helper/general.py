@@ -6,6 +6,13 @@ import pandas as pd
 
 
 def get_table(df_all_matches, week=None, side=None):
+    """
+    Function to compute the table of the league based on all matches in *df_all_matches*
+    :param df_all_matches: (pd.DataFrame) Data frame containing all the matches
+    :param week: (int) If not None, only matches <= *week* are considered for the calculation
+    :param side: (str) Can only contain values None, "Home" or "Away". If not None, home or away table are calculated
+    :return: pd.DataFrame containing the table of the league
+    """
 
     if week is None:
         week = max(df_all_matches["gameweek"])
@@ -36,6 +43,9 @@ def get_table(df_all_matches, week=None, side=None):
 
 
 def attach_team_name(df, df_teams, req_cols=None):
+    """
+    Helper function to attach the team name stored in *df_teams* to a data frame *df* containing a teamId
+    """
     if req_cols is None:
         req_cols = ["teamId", "teamName"]
     df = pd.merge(df, df_teams[req_cols], how="left")
@@ -43,6 +53,14 @@ def attach_team_name(df, df_teams, req_cols=None):
 
 
 def get_pretty_table(df_all_matches, df_teams, week=None, side=None):
+    """
+    Wrapper around *get_table* function to get pretty table of the league.
+    :param df_all_matches: (pd.DataFrame) Data frame containing all matches
+    :param df_teams: (pd.DataFrame) Data frame containing all team names
+    :param week: (int) If not None, only matches <= *week* are considered for the calculation
+    :param side: (str) Can only contain values None, "Home" or "Away". If not None, home or away table are calculated
+    :return: pd.DataFrame with a pretty table of the league
+    """
     df_table = get_table(df_all_matches, week, side)
     df_table = attach_team_name(df_table, df_teams)
     cols = [

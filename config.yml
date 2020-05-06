@@ -3,11 +3,12 @@ general:
   project_name: soccer_analytics
   # project_path will be automatically set
   project_path: C:\Clemens\Learning\soccer_analytics
+  # do not change field length and width at the moment - functionality not fully implemented
   field_length: 105
   field_width: 68
 
 data:
-  path: data
+  path: data\event_data
   team_data: teams_xxxxx.parquet
   player_data: players.parquet
   match_data: matches_xxxxx.parquet
@@ -15,7 +16,7 @@ data:
   formation_data: formations_xxxxx.parquet
 
 model:
-  path: models
+  path: data\models
   expected_goals_logreg: expected_goals_logistic_regression.sav
 
 raw_data_wyscout:
