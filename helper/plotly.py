@@ -13,11 +13,14 @@ import helper.event_data as ed_help
 import helper.general as gen_help
 
 
-def create_empty_field(below=False, len_field=105, wid_field=68):
+def create_empty_field(below=False, colour="green", line_colour=None, size=1, len_field=105, wid_field=68):
     """
     Function returns a plotly figure of a soccer field.
     :param below: (bool) If true, any additional traces will overlay the field; otherwise, the field will overlay the
                          additional traces
+    :param colour: (str) Colour of the field; currently only "green" and "white" are supported
+    :param line_colour: (str) Colour of the line; if none it is automatically set based on the field colour
+    :param size: (float) Size relative to the standard size
     :param len_field: (int) Length of soccer field in meters (needs to be between 90m and 120m)
     :param wid_field: (int) Width of soccer field in meters (needs to be between 60m and 90m)
     :return: go.Figure with a soccer field
@@ -26,17 +29,23 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
     # check the input for correctness
     assert 90 <= len_field <= 120
     assert 60 <= wid_field <= 90
+    assert colour in ["green", "white"]
     assert type(below) is bool
 
     # size for center point and penalty points
     size_point = 0.5
 
+    field_colour = "rgba(0,255,112,1)" if colour == "green" else "white"
+
+    if line_colour is None:
+        line_colour = "white" if colour == "green" else "black"
+
     # set the overall layout of the field
     layout = go.Layout(
         # make sure the field is green
-        plot_bgcolor="rgba(0,255,112,1)",
-        xaxis=dict(range=[0, len_field], showgrid=False, showticklabels=False),
-        yaxis=dict(range=[0, wid_field], showgrid=False, showticklabels=False),
+        plot_bgcolor=field_colour,
+        xaxis=dict(range=[-5, len_field+5], zeroline=False, showgrid=False, showticklabels=False),
+        yaxis=dict(range=[-5, wid_field+5], zeroline=False, showgrid=False, showticklabels=False),
     )
 
     # create an empty figure for which only the layout is set
@@ -51,7 +60,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             y0=0,
             x1=len_field / 2,
             y1=wid_field,
-            line=dict(color="white", width=2),
+            line=dict(color=line_colour, width=2),
         )
     )
 
@@ -70,7 +79,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
                 y0=y_vals[i],
                 x1=x_vals[i + 1],
                 y1=y_vals[i + 1],
-                line=dict(color="white", width=2),
+                line=dict(color=line_colour, width=2),
             )
         )
 
@@ -94,7 +103,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
                 y0=y_vals[i],
                 x1=x_vals[i + 1],
                 y1=y_vals[i + 1],
-                line=dict(color="white", width=2),
+                line=dict(color=line_colour, width=2),
             )
         )
 
@@ -112,7 +121,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
                 y0=y_vals[i],
                 x1=x_vals[i + 1],
                 y1=y_vals[i + 1],
-                line=dict(color="white", width=2),
+                line=dict(color=line_colour, width=2),
             )
         )
 
@@ -136,7 +145,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
                 y0=y_vals[i],
                 x1=x_vals[i + 1],
                 y1=y_vals[i + 1],
-                line=dict(color="white", width=2),
+                line=dict(color=line_colour, width=2),
             )
         )
 
@@ -156,8 +165,8 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             y0=y_vals[0],
             x1=x_vals[1],
             y1=y_vals[1],
-            line_color="white",
-            fillcolor="white",
+            line_color=line_colour,
+            fillcolor=line_colour,
         )
     )
 
@@ -177,8 +186,8 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             y0=y_vals[0],
             x1=x_vals[1],
             y1=y_vals[1],
-            line_color="white",
-            fillcolor="white",
+            line_color=line_colour,
+            fillcolor=line_colour,
         )
     )
 
@@ -197,8 +206,8 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             y0=y_vals[0],
             x1=x_vals[1],
             y1=y_vals[1],
-            line_color="white",
-            fillcolor="white",
+            line_color=line_colour,
+            fillcolor=line_colour,
         )
     )
 
@@ -220,7 +229,130 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             y0=circle_y,
             x1=len_field - circle_x,
             y1=wid_field - circle_y,
-            line_color="white",
+            line_color=line_colour,
+        )
+    )
+
+    # add outer lines
+    ###################
+
+    fig.add_shape(
+        dict(
+            type="line",
+            x0=0,
+            y0=0,
+            x1=len_field,
+            y1=0,
+            line=dict(color=line_colour, width=2),
+        )
+    )
+
+    # add the out lines
+    fig.add_shape(
+        dict(
+            type="line",
+            x0=0,
+            y0=0,
+            x1=0,
+            y1=wid_field,
+            line=dict(color=line_colour, width=2),
+        )
+    )
+
+    # add the out lines
+    fig.add_shape(
+        dict(
+            type="line",
+            x0=0,
+            y0=wid_field,
+            x1=len_field,
+            y1=wid_field,
+            line=dict(color=line_colour, width=2),
+        )
+    )
+
+    # add the out lines
+    fig.add_shape(
+        dict(
+            type="line",
+            x0=len_field,
+            y0=0,
+            x1=len_field,
+            y1=wid_field,
+            line=dict(color=line_colour, width=2),
+        )
+    )
+
+    # add goals
+    ###########
+
+    goal_width = 7.32
+
+    # left goal
+    fig.add_shape(
+        dict(
+            type="line",
+            x0=0,
+            y0=(wid_field - goal_width) / 2,
+            x1=-2,
+            y1=(wid_field - goal_width) / 2,
+            line=dict(color=line_colour, width=2),
+        )
+    )
+
+    fig.add_shape(
+        dict(
+            type="line",
+            x0=0,
+            y0=(wid_field + goal_width) / 2,
+            x1=-2,
+            y1=(wid_field + goal_width) / 2,
+            line=dict(color=line_colour, width=2),
+        )
+    )
+
+    fig.add_shape(
+        dict(
+            type="line",
+            x0=-2,
+            y0=(wid_field - goal_width) / 2,
+            x1=-2,
+            y1=(wid_field + goal_width) / 2,
+            line=dict(color=line_colour, width=2),
+        )
+    )
+
+    # right goal
+    fig.add_shape(
+        dict(
+            type="line",
+            x0=len_field,
+            y0=(wid_field - goal_width) / 2,
+            x1=len_field + 2,
+            y1=(wid_field - goal_width) / 2,
+            line=dict(color=line_colour, width=2),
+        )
+    )
+
+    fig.add_shape(
+        dict(
+            type="line",
+            x0=len_field,
+            y0=(wid_field + goal_width) / 2,
+            x1=len_field + 2,
+            y1=(wid_field + goal_width) / 2,
+            line=dict(color=line_colour, width=2),
+        )
+    )
+
+    fig.add_shape(
+        dict(
+            type="line",
+            x0=len_field + 2,
+            y0=(wid_field - goal_width) / 2,
+            x1=len_field + 2,
+            y1=(wid_field + goal_width) / 2,
+            line=dict(color=line_colour, width=2),
         )
     )
 
@@ -230,7 +362,7 @@ def create_empty_field(below=False, len_field=105, wid_field=68):
             shape["layer"] = "below"
 
     # update the layout such that the field looks symmetrical
-    fig.update_layout(autosize=False, width=len_field * 8, height=wid_field * 9)
+    fig.update_layout(autosize=False, width=len_field * 8 * size, height=wid_field * 9 * size)
 
     return fig
 
@@ -351,7 +483,7 @@ def prepare_event_plot(df, x_col, y_col, label_info=None, left_team=None):
     return df
 
 
-def create_event_plot(df, x_col, y_col):
+def create_event_plot(df, x_col, y_col, size=1):
     """
     Creation of an event plot, i.e. a sequence of events is plotted on the field and connected through a line.
     :param df: (pd.DataFrame) Data frame containing all the events to be plotted; output of
@@ -360,11 +492,12 @@ def create_event_plot(df, x_col, y_col):
                 of the markers, the label text and position as well as the hover information
     :param x_col: (str) Name of the column containing the x-coordinates
     :param y_col: (str) Name of the column containing the y-coordinates
+    :param size: (float) Relative size of the field
     :return: go.Figure with the events plotted on top of the soccer field
     """
 
     # creation of an empty soccer field
-    field = create_empty_field(below=True)
+    field = create_empty_field(below=True, size=size)
 
     # add all lines connecting the different markers on the field
     field.add_trace(
@@ -489,6 +622,7 @@ def create_event_animation(
     df,
     total_seconds,
     fps=10,
+    size=1,
     x_col_bef="posBeforeXMeters",
     x_col_aft="posAfterXMeters",
     y_col_bef="posBeforeYMeters",
@@ -501,6 +635,7 @@ def create_event_animation(
     :param df: (pd.DataFrame) Data frame as output of the *prepare_event_animation* function
     :param total_seconds: (float) Total number of seconds (w.r.t. time in the soccer match) to be animated
     :param fps: (int) Number of frames per second to be displayed
+    :param size: (float) Relative size of the field
     :param x_col_bef: (str) Column name of the x-coordinate at event start
     :param x_col_aft: (str) Column name of the x-coordinate at event end
     :param y_col_bef: (str) Column name of the y-coordinate at event start
@@ -607,7 +742,7 @@ def create_event_animation(
     # compute the layout
     ####################
 
-    field = create_empty_field(below=True)
+    field = create_empty_field(below=True, size=size)
     layout = dict(
         # make sure the field is green
         plot_bgcolor=field["layout"]["plot_bgcolor"],
@@ -742,7 +877,7 @@ def prepare_heatmap(
 
 
 def create_heatmap(
-    x, y, z, dict_info, title_name=None, colour_scale=None, legend_name=None
+    x, y, z, dict_info, title_name=None, colour_scale=None, legend_name=None, size=1
 ):
 
     # Prepare the text to be shown when hovering over the heatmap
@@ -760,7 +895,7 @@ def create_heatmap(
             hovertext[-1].append(text)
 
     # get the empty soccer field
-    fig = create_empty_field()
+    fig = create_empty_field(colour="white", line_colour="white", size=size)
     # overlay field with the heatmap
     fig.add_trace(go.Heatmap(x=x, y=y, z=z, hoverinfo="text", text=hovertext))
 
@@ -904,6 +1039,7 @@ def create_position_plot(
     colour_scale=None,
     df_passes=None,
     convex_hull=False,
+    size=1
 ):
     """
     Creation of the position plot, i.e. each player of the team is plotted on the field depending on their position.
@@ -917,6 +1053,7 @@ def create_position_plot(
     :param df_passes: (pd.DataFrame, optional) If not None, passes between the players will be displayed. Usually
                        output of the *prepare_passes_for_position_plot* function
     :param convex_hull: (bool) If True, a convex hull around all field players will be drawn
+    :param size: (float) Relative size of the plot
     :return: go.Figure with the position plot
     """
     # Default dictionary for hover information
@@ -938,7 +1075,7 @@ def create_position_plot(
     # make sure the
     df_stats["centroidY"] = 68 - df_stats["centroidY"]
 
-    field = create_empty_field(below=True)
+    field = create_empty_field(below=True, size=size)
 
     # compute the convex hull and add it to the plot
     ################################################
@@ -1221,7 +1358,7 @@ def prepare_pass_polar_plot(
     return df_group
 
 
-def create_pass_polar_plot(df, dict_info=None, title_name=None):
+def create_pass_polar_plot(df, dict_info=None, title_name=None, size=1):
     """
     Function creates the pass polar plot which indicates the direction in which passes where being made. It also
     conveys other information by using size and colour. Before running this function one usually needs to run the
@@ -1229,6 +1366,7 @@ def create_pass_polar_plot(df, dict_info=None, title_name=None):
     :param df: (pd.DataFrame) Contains all relevant data; usually the output of the *prepare_pass_polar_plot* function
     :param dict_info: (dict, optional) Defined what and how information should be shown when hovering over the players.
     :param title_name: (str) Title of the graph
+    :param size: (float) Relative size of the plot
     :return: go.Figure containing the pass polar plot
     """
 
@@ -1260,7 +1398,7 @@ def create_pass_polar_plot(df, dict_info=None, title_name=None):
     colours = colour_scale(white, red, n=101)
 
     # create the empty field
-    fig = create_empty_field(below=True)
+    fig = create_empty_field(below=True, size=size)
 
     # loop through all the different centroid / degree combinations and draw the triangles
     for i, row in df.iterrows():
