@@ -18,10 +18,10 @@
 This projects includes a number of notebooks that serve as tutorial on how to use the helper functions and might be a good starting point into soccer analytics in general.
 The notebooks can be found [here](notebooks) and I recommend to go through them in the following order:
 
-1. [Exploratory analysis event data](notebooks/exploratory_analysis_event_data.ipynb): This notebook gives you an overview over the pre-processed wyscout data that we are going to use 
-and run rudimentary exploratory analysis using pandas-profiling
+1. [Exploratory analysis event data](notebooks/exploratory_analysis_event_data.ipynb): This notebook gives you an overview over the pre-processed wyscout data 
+and runs rudimentary exploratory analysis using pandas-profiling
 
-2. [Goal kick analysis](notebooks/goal_kick_analysis.ipynb): In this notebook we analyse goal kicks made in the Bundesliga. On the way we learn how to
+2. [Goal kick analysis](notebooks/goal_kick_analysis.ipynb): In this notebook we identify the best teams w.r.t goal kicks in the Bundesliga. On the way we learn how to
     - Use bar plots in plotly
     - Visualize events on a soccer field through graphs and animations
     - Draw heatmaps on a soccer field
@@ -32,7 +32,6 @@ and run rudimentary exploratory analysis using pandas-profiling
     - Draw position plots of players
     - Visualize passing lines and passing zones
 
-
 4. [Expected goal model with logistic regression](notebooks/expected_goal_model_lr.ipynb): While in the previous notebooks it was mostly about visualization, in this notebook we start 
 looking into machine learning. We jointly build an expected goal model using logistic regression and learn about fundamentals of machine learning, e.g.:
     - Feature engineering 
@@ -41,8 +40,7 @@ looking into machine learning. We jointly build an expected goal model using log
     - Model interpretation
 
 5. [Challenges using gradient boosters](notebooks/challenges_with_gradient_boosters.ipynb): In this rather technical notebook we are going to look into some of the challenges that often 
-arise when using gradient boosters such as lightGBM or XGBoost in real-life situations and how to potentially overcome most of 
-them. Challenges include:
+arise in real-life situations when using gradient boosters such as lightGBM or XGBoost, such as:
     - Overfitting
     - Feature interpretation
     - Monotonicity
@@ -75,4 +73,7 @@ the instruction under [Conda](#Conda)
 `pip install -r requirements.txt`
 
 ## Acknowledgements
-[wyscout data](https://figshare.com/collections/Soccer_match_event_dataset/4415000/2)
+
+### Data sources
+
+Event data: [Wyscout](https://figshare.com/collections/Soccer_match_event_dataset/4415000/2)
