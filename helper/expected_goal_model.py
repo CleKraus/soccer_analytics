@@ -214,37 +214,15 @@ class ExpectedGoalModelLogistic(ExpectedGoalModel):
         self.model_name = "expected_goals_logreg"
 
         # features used in the model
-        self.features = [
-            "distToGoalLine",
-            "distToCenter",
-            "weakFoot",
-            "counterAttack",
-            "corner",
-            "smartPass",
-            "duel",
-            "shotBefore",
-            "angleClip",
-            "frontOfGoal",
-            "headDistToGoalLine",
-        ]
+        df_features = io.read_data("features_expected_goals_logreg", data_folder="model", sep=";")
+        self.features = list(df_features[df_features["used"] == 1]["feature"])
 
         # mean values and standard deviations for this model
-        self.feature_measures = {
-            "distToGoalLine": {"mean": 15.930207612456748, "std": 8.520058996794551},
-            "distToCenter": {"mean": 7.786845938375349, "std": 5.2201237665066},
-            "weakFoot": {"mean": 0.18866370077442743, "std": 0.3912476878714778},
-            "counterAttack": {"mean": 0.055692865381446695, "std": 0.22933142674397106},
-            "corner": {"mean": 0.023924864063272367, "std": 0.15281765125037938},
-            "smartPass": {"mean": 0.04264293952875268, "std": 0.20205411311643012},
-            "duel": {"mean": 0.36875926841324763, "std": 0.48247646741037054},
-            "shotBefore": {"mean": 0.021057834898665348, "std": 0.14357953142714186},
-            "angleClip": {"mean": 36.94625627632563, "std": 5.8718678088086165},
-            "frontOfGoal": {"mean": 0.01888284725654968, "std": 0.13611354039183185},
-            "headDistToGoalLine": {
-                "mean": 1.440968858131488,
-                "std": 3.7213713754703233,
-            },
-        }
+        self.feature_measures = {}
+        for i, row in df_features.iterrows():
+            self.feature_measures[row["feature"]] = {}
+            self.feature_measures[row["feature"]]["mean"] = row["mean"]
+            self.feature_measures[row["feature"]]["std"] = row["std"]
 
     def create_features(self, df, overwrite=True):
         """
