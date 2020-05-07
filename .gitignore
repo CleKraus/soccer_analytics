@@ -2,6 +2,8 @@ __pycache__/
 .idea/
 .pytest_cache
 notebooks/.ipynb_checkpoints
+links.txt
+dashboard/
 
 # data #
 ########
