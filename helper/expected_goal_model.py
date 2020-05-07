@@ -214,7 +214,9 @@ class ExpectedGoalModelLogistic(ExpectedGoalModel):
         self.model_name = "expected_goals_logreg"
 
         # features used in the model
-        df_features = io.read_data("features_expected_goals_logreg", data_folder="model", sep=";")
+        df_features = io.read_data(
+            "features_expected_goals_logreg", data_folder="model", sep=";"
+        )
         self.features = list(df_features[df_features["used"] == 1]["feature"])
 
         # mean values and standard deviations for this model

@@ -13,7 +13,9 @@ import helper.event_data as ed_help
 import helper.general as gen_help
 
 
-def create_empty_field(below=False, colour="green", line_colour=None, size=1, len_field=105, wid_field=68):
+def create_empty_field(
+    below=False, colour="green", line_colour=None, size=1, len_field=105, wid_field=68
+):
     """
     Function returns a plotly figure of a soccer field.
     :param below: (bool) If true, any additional traces will overlay the field; otherwise, the field will overlay the
@@ -44,8 +46,18 @@ def create_empty_field(below=False, colour="green", line_colour=None, size=1, le
     layout = go.Layout(
         # make sure the field is green
         plot_bgcolor=field_colour,
-        xaxis=dict(range=[-5, len_field+5], zeroline=False, showgrid=False, showticklabels=False),
-        yaxis=dict(range=[-5, wid_field+5], zeroline=False, showgrid=False, showticklabels=False),
+        xaxis=dict(
+            range=[-5, len_field + 5],
+            zeroline=False,
+            showgrid=False,
+            showticklabels=False,
+        ),
+        yaxis=dict(
+            range=[-5, wid_field + 5],
+            zeroline=False,
+            showgrid=False,
+            showticklabels=False,
+        ),
     )
 
     # create an empty figure for which only the layout is set
@@ -362,7 +374,9 @@ def create_empty_field(below=False, colour="green", line_colour=None, size=1, le
             shape["layer"] = "below"
 
     # update the layout such that the field looks symmetrical
-    fig.update_layout(autosize=False, width=len_field * 8 * size, height=wid_field * 9 * size)
+    fig.update_layout(
+        autosize=False, width=len_field * 8 * size, height=wid_field * 9 * size
+    )
 
     return fig
 
@@ -1075,7 +1089,7 @@ def create_position_plot(
     colour_scale=None,
     df_passes=None,
     convex_hull=False,
-    size=1
+    size=1,
 ):
     """
     Creation of the position plot, i.e. each player of the team is plotted on the field depending on their position.
