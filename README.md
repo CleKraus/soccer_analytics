@@ -26,7 +26,7 @@ and runs rudimentary exploratory analysis using pandas-profiling
     - Visualize events on a soccer field through graphs and animations
     - Draw heatmaps on a soccer field
 
-3. [Passing analysis](notebooks/passing_analysis.ipynb): We continue our journey but looking at passes between players and analyze one match in more detail. Technically, we learn how to 
+3. [Passing analysis](notebooks/passing_analysis.ipynb): We continue our journey by looking at passes between players and analyze one match in more detail. Technically, we learn how to 
     use the helper function to:
     - Compute statistics efficiently
     - Draw position plots of players
@@ -60,8 +60,8 @@ arise in real-life situations when using gradient boosters such as lightGBM or X
 
 
 ## Installation
-If you are new to Python and soccer analytics I would recommend to you to download [Anaconda distribution](https://www.anaconda.com/distribution/#download-section) and follow 
-the instruction under [Conda](#Conda)
+If you are new to Python and soccer analytics, I would recommend you to download the [Anaconda distribution](https://www.anaconda.com/distribution/#download-section) and follow 
+the instructions under [Conda](#Conda).
 
 ### Conda
 1. Open the Anaconda Prompt and cd to the project folder
