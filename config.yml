@@ -18,6 +18,7 @@ data:
 model:
   path: data\models
   expected_goals_logreg: expected_goals_logistic_regression.sav
+  features_expected_goals_logreg: features_egm_logreg.csv
 
 raw_data_wyscout:
   path: data\raw_data\wyscout_data
