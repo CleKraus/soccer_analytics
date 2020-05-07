@@ -8,7 +8,7 @@ general:
   field_width: 68
 
 data:
-  path: data\event_data
+  path: data/event_data
   team_data: teams_xxxxx.parquet
   player_data: players.parquet
   match_data: matches_xxxxx.parquet
@@ -16,14 +16,14 @@ data:
   formation_data: formations_xxxxx.parquet
 
 model:
-  path: data\models
+  path: data/models
   expected_goals_logreg: expected_goals_logistic_regression.sav
   features_expected_goals_logreg: features_egm_logreg.csv
 
 raw_data_wyscout:
-  path: data\raw_data\wyscout_data
+  path: data/raw_data/wyscout_data
   team_data: teams.json
   player_data: players.json
-  event_data: events\events_xxxxx.json
-  match_data: matches\matches_xxxxx.json
+  event_data: events/events_xxxxx.json
+  match_data: matches/matches_xxxxx.json
   tags: tags.csv
