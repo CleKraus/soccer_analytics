@@ -5,7 +5,7 @@ name: Testing
 
 on:
   push:
-    branches: [ prepare_golive ]
+    branches: [ master, dev ]
   pull_request:
     branches: [ master ]
 
@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.6]
+        python-version: [3.6, 3.7, 3.8]
         platform: [ubuntu-latest]
 
     runs-on: ${{ matrix.platform }}
