@@ -55,3 +55,7 @@ jobs:
     - name: Test notebook challenges with gradient boosting
       run: |
         py.test --nbval-lax notebooks/challenges_with_gradient_boosters.ipynb
+
+    - name: Test notebook introduction to tracking data
+      run: |
+        py.test --nbval-lax notebooks/introduction_to_tracking_data.ipynb
