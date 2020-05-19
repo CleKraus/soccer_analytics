@@ -345,6 +345,8 @@ def cleanse_tracking_data(game):
     df_all.rename(columns={"ballOut": "ballInPlay"}, inplace=True)
     df_all["ballInPlay"] = 1 - df_all["ballInPlay"]
 
+    df_all.drop(["outOfBounds", "outPeriod"], axis=1, inplace=True)
+
     # save to parquet file
     io.write_data(df_all, "tracking_data", league=str(game), data_folder="metrica_data")
 

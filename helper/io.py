@@ -402,7 +402,7 @@ def read_tracking_data(game, clean=True):
 
     else:
 
-        cols += ["xPosMetrica", "yPosMetrica", "ballInPlay", "outOfBounds", "outPeriod"]
+        cols += ["xPosMetrica", "yPosMetrica", "ballInPlay"]
 
         # the first frames in game number 1 are messed up
         if game == 1:
