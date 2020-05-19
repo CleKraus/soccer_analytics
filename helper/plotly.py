@@ -836,6 +836,7 @@ def prepare_heatmap(
     return_df=False,
     length_field=105,
     width_field=68,
+    tracking_data=False
 ):
     """
     Helper function to prepare a heatmap. It is most often used in combination with the function *create_heatmap*
@@ -851,6 +852,7 @@ def prepare_heatmap(
     :param return_df: (bool) If True, function returns *df* with additional columns indicating the grid cell
     :param length_field (int) Length of the field in meters
     :param width_field: (int) Width of the field in meters
+    :param tracking_data: (bool) Whether the underlying data is tracking data or not
     :return: Returns three np.arrays for
             1. The center points of the grid cells in x-direction
             2. The center points of the grid cells in y-direction
@@ -858,6 +860,9 @@ def prepare_heatmap(
     """
 
     df = df.copy()
+
+    if tracking_data:
+        df[col_y] = -1*(df[col_y] - width_field / 2) + width_field / 2
 
     df[col_x + "Zone"], df_lookup_x_buckets = _calculate_bucket_for_position(
         df[col_x], nb_buckets_x, 0, length_field
@@ -915,39 +920,49 @@ def prepare_heatmap(
 
 
 def create_heatmap(
-    x, y, z, dict_info, title_name=None, colour_scale=None, legend_name=None, size=1
+    x, y, z, dict_info, title_name=None, colour_scale=None, zsmooth=False, legend_name=None, size=1
 ):
     """
     Function to create a coloured heatmap on top of a soccer field
     :param x: (np.array) Center points of the grid cells in x-direction, i.e. length of the field
     :param y: (np.array) Center points of the grid cells in y-direction, i.e. width of the field
     :param z: (np.array) Two-dimensional array containing the values for all grid cells
-    :param dict_info: (dict) Defines what and how information should be shown when hovering over the grid cells
+    :param dict_info: (dict) Defines what and how information should be shown when hovering over the grid cells.
+                       If None, no information is displayed
     :param title_name: (str) Title to be added above the plot
     :param colour_scale: (tuple) Contains the min and max values for the colour scale
+    :param zsmooth: (str or False) Smoothing parameter as used by go.Heatmap
     :param legend_name: (str) Name to be added on top of the colour legend bar
     :param size: (float) Relative size of the field
     :return: go.Figure with a heatmap plotted on top of the soccer field
     """
 
-    # Prepare the text to be shown when hovering over the heatmap
-    hovertext = list()
-    for idy in range(len(z)):
-        hovertext.append(list())
-        for idx in range(len(z[1])):
-            text = ""
-            for key in dict_info.keys():
-                text += "{}: {:^{display_type}}<br />".format(
-                    key,
-                    dict_info[key]["values"][idy][idx],
-                    display_type=dict_info[key]["display_type"],
-                )
-            hovertext[-1].append(text)
+    if dict_info is not None:
+        # Prepare the text to be shown when hovering over the heatmap
+        hovertext = list()
+        for idy in range(len(z)):
+            hovertext.append(list())
+            for idx in range(len(z[1])):
+                text = ""
+                for key in dict_info.keys():
+                    text += "{}: {:^{display_type}}<br />".format(
+                        key,
+                        dict_info[key]["values"][idy][idx],
+                        display_type=dict_info[key]["display_type"],
+                    )
+                hovertext[-1].append(text)
 
     # get the empty soccer field
     fig = create_empty_field(colour="white", line_colour="white", size=size)
+
     # overlay field with the heatmap
-    fig.add_trace(go.Heatmap(x=x, y=y, z=z, hoverinfo="text", text=hovertext))
+
+    # if no information should be displayed
+    if dict_info is None:
+        fig.add_trace(go.Heatmap(x=x, y=y, z=z, zsmooth=zsmooth, hoverinfo="none"))
+    # if some information should be displayed
+    else:
+        fig.add_trace(go.Heatmap(x=x, y=y, z=z, zsmooth=zsmooth, hoverinfo="text", text=hovertext))
 
     if colour_scale is not None:
         fig["data"][-1]["zmin"] = colour_scale[0]
@@ -1015,7 +1030,7 @@ def get_match_title(match_id, df_matches, df_teams, perspective="home"):
     return match_title
 
 
-def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=None):
+def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=None, view_90_min=False):
     """
     Function to prepare the passes for the position plot (see *create_position_plot*). It does so by aggregating the
     accurate passes between any two players that appear in *df_stats*
@@ -1025,6 +1040,9 @@ def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=Non
                       *compute_statics* function can be used
     :param show_top_k_percent: (int, optional) If not None, only the most important passes are returned in a way that
                                 *show_top_k_percent* of all passes are being displayed
+    :param view_90_min: (bool, optional) If True, passes are rescaled to 90 minutes, i.e. as if the players would have
+                        played 90 minutes together. Caveat: Does not work if one player was substituted out and the other
+                        substituted in and they only had a short overlap.
     :return: pd.DataFrame with passes between any two players. This data frame can be directly used in the
              *create_position_plot* function
     """
@@ -1040,10 +1058,10 @@ def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=Non
     players = df_stats["playerId"].unique()
     df_passes = df_passes[
         df_passes["player1Id"].isin(players) & df_passes["player2Id"].isin(players)
-    ]
+        ]
 
     # get the centroid for each of the players
-    df_centroid = df_stats[["playerId", "centroidX", "centroidY"]].copy()
+    df_centroid = df_stats[["playerId", "centroidX", "centroidY", "minutesPlayed"]].copy()
 
     # add the position of player 1
     df_pos_player1 = df_centroid.rename(
@@ -1051,6 +1069,7 @@ def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=Non
             "playerId": "player1Id",
             "centroidX": "centroidX1",
             "centroidY": "centroidY1",
+            "minutesPlayed": "minutesPlayed1"
         }
     )
     df_pass_share = pd.merge(df_passes, df_pos_player1, on="player1Id")
@@ -1061,9 +1080,14 @@ def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=Non
             "playerId": "player2Id",
             "centroidX": "centroidX2",
             "centroidY": "centroidY2",
+            "minutesPlayed": "minutesPlayed2"
         }
     )
     df_pass_share = pd.merge(df_pass_share, df_pos_player2, on="player2Id")
+
+    if view_90_min:
+        df_pass_share["totalPasses"] = df_pass_share["totalPasses"] / df_pass_share[
+            ["minutesPlayed1", "minutesPlayed2"]].min(axis=1) * 90
 
     # compute the share of the passes for each player tuple
     df_pass_share["sharePasses"] = df_pass_share["totalPasses"] / sum(
@@ -1076,7 +1100,7 @@ def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=Non
         df_pass_share["cumShare"] = df_pass_share["sharePasses"].cumsum()
         df_pass_share = df_pass_share[
             df_pass_share["cumShare"] * 100 < show_top_k_percent
-        ].copy()
+            ].copy()
 
     return df_pass_share
 
@@ -1110,6 +1134,7 @@ def create_position_plot(
     default_dict = {
         "Player name": {"values": "playerName"},
         "Total passes": {"values": "totalPasses", "display_type": ".0f"},
+        "Total passes/90": {"values": "totalPasses90", "display_type": ".0f"},
         "Accurate passes (in %)": {
             "values": "shareAccuratePasses",
             "display_type": ".1f",
@@ -1118,11 +1143,14 @@ def create_position_plot(
         "Total goals": {"values": "totalGoals", "display_type": ".0f"},
         "Total duels": {"values": "totalDuels", "display_type": ".0f"},
         "Minutes played": {"values": "minutesPlayed", "display_type": ".0f"},
+        "Total distance": {"values": "totalDistance", "display_type": ".1f"},
+        "Total distance/90": {"values": "totalDistance90", "display_type": ".1f"},
+        "Max speed (km/h)": {"values": "maxSpeed", "display_type": ".2f"}
     }
 
     df_stats = df_stats.copy()
 
-    # make sure the
+    # make sure the centroids
     df_stats["centroidY"] = 68 - df_stats["centroidY"]
 
     field = create_empty_field(below=True, size=size)
