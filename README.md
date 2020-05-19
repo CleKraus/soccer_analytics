@@ -6,8 +6,8 @@
 `soccer_analytics` is a Python project trying to facilitate and being a starting point for analytics projects in soccer. 
 
 * Extensive number of helper functions for visualization and animation of soccer events
-* Calculation of relevant soccer KPIs for event data (tracking data to come)
-* Pre-proccessed [wyscout](https://figshare.com/collections/Soccer_match_event_dataset/4415000/2) event data allows you to dive into the analyses immediately 
+* Calculation of relevant soccer KPIs for event data and tracking data
+* Pre-proccessed [wyscout](https://figshare.com/collections/Soccer_match_event_dataset/4415000/2) event data and [Metrica](https://github.com/metrica-sports/sample-data) tracking data allows you to dive into the analyses immediately 
 * Detailed tutorials in form of notebooks that help you get started with this project and soccer analytics in general
 * Thought of as a starting point for projects rather than a "hidden" library
 * Set up in a way so that functions are easily extendable
@@ -46,9 +46,18 @@ arise in real-life situations when using gradient boosters such as lightGBM or X
     - Monotonicity
     - Extrapolation
 
+6. [Introduction to tracking data](notebooks/introduction_to_tracking_data.ipynb): In this notebook we are going to start looking into tracking data provided by Metrica sports. We learn 
+about the fundamentals on working with tracking data such as:
+    - Visualizing tracking data in animations
+    - Computing basic statistics based on tracking data
+    - Adding helper tools to highlight certain aspects in animations
+    - Deep-dive into *packing*
+
 
 ## Examples
 
+### Tracking data visualization
+![](docs/img/tracking_visualizer.gif)
 ### Event visualisation
 ![](docs/img/event_example_new.JPG)<!-- .element height="20%" width="20%" -->
 ### Heatmap
@@ -66,7 +75,7 @@ the instructions under [Conda](#Conda).
 ### Conda
 1. Open the Anaconda Prompt and cd to the project folder
 2. Create a new conda environment "soccer_analytics"\
-`conda create -n soccer_analytics python=3.6`
+`conda create -n soccer_analytics python=3.7`
 3. Activate the conda environment\
 `conda activate soccer_analytics`
 4. Install all required packages\
@@ -75,5 +84,9 @@ the instructions under [Conda](#Conda).
 ## Acknowledgements
 
 ### Data sources
-
 Event data: [Wyscout](https://figshare.com/collections/Soccer_match_event_dataset/4415000/2)
+
+Tracking data: [Metrica](https://github.com/metrica-sports/sample-data)
+
+### Code
+Great repositority to read in tracking data by Laurie Shaw [here](https://github.com/Friends-of-Tracking-Data-FoTD/LaurieOnTracking)
