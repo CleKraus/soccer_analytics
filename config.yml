@@ -15,6 +15,12 @@ data:
   event_data: events_xxxxx.parquet
   formation_data: formations_xxxxx.parquet
 
+metrica_data:
+  path: data/metrica_data
+  event_data: event_data_game_xxxxx.parquet
+  tracking_data: tracking_data_game_xxxxx.parquet
+  formation_data: formations_game_xxxxx.parquet
+
 model:
   path: data/models
   expected_goals_logreg: expected_goals_logistic_regression.sav
@@ -27,3 +33,10 @@ raw_data_wyscout:
   event_data: events/events_xxxxx.json
   match_data: matches/matches_xxxxx.json
   tags: tags.csv
+
+raw_data_metrica:
+  path: data/raw_data/metrica_data
+  event_data: Sample_Game_xxxxx/Sample_Game_xxxxx_RawEventsData.csv
+  home_team_tracking: Sample_Game_xxxxx/Sample_Game_xxxxx_RawTrackingData_Home_Team.csv
+  away_team_tracking: Sample_Game_xxxxx/Sample_Game_xxxxx_RawTrackingData_Away_Team.csv
+  player_positions: player_positions.csv
