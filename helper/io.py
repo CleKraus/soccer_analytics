@@ -4,9 +4,12 @@
 import json
 import os
 import pickle
+import warnings
+import csv
 from pathlib import Path
 
 import pandas as pd
+import numpy as np
 import ruamel.yaml
 
 import helper.machine_learning as ml_help
@@ -77,7 +80,7 @@ def read_data(data_type, league=None, sep=None, data_folder=None):
     Function to read data specified in the config file under "data"
     :param data_type: (str) Type of data (event, match, player, ...) to be read. Needs to exactly match the name in
                       the config file
-    :param league: (str) League to be read in case there are different files (e.g. Germany, Englang, ...)
+    :param league: (str) League to be read in case there are different files (e.g. Germany, England, ...)
     :param sep: (str) Separator in case a csv-file is read
     :param data_folder: (str) In case any other data folder than "data" from the config file is required, it should be
                         specified here (e.g. when reading the raw_wyscout data, one should set *data_folder* to
@@ -118,7 +121,11 @@ def read_data(data_type, league=None, sep=None, data_folder=None):
         project_path = _update_project_path()
         full_path = os.path.join(project_path, config[data_folder]["path"], fname)
 
-    data = _read_file(full_path, sep)
+    # raw tracking data needs to be read differently
+    if "team_tracking" in data_type and data_folder == "raw_data_metrica":
+        data = read_raw_tracking_data(full_path, data_type.split("_")[0])
+    else:
+        data = _read_file(full_path, sep)
 
     return data
 
@@ -299,6 +306,146 @@ def read_model(model_name):
         model = pickle.load(f)
 
     return model
+
+
+def read_metrica_event_data(game, wyscout_format=True):
+    """
+    Helper function to read the cleaned Metrica event data
+    :param game: (int) Identifier of the game (currently only 1 and 2 are there)
+    :param wyscout_format: (bool) If True, the event data is returned the same way as in the Wyscout data to be
+                            compatible with the helper functions
+    :return:
+    """
+
+    # read the event data
+    df_events = read_data("event_data", league=str(game), data_folder="metrica_data")
+
+    # if event data should be returned in the metrica format
+    if not wyscout_format:
+        cols = ['team', 'type', 'subtype', 'period', 'startFrame', 'startTime',
+                'endFrame', 'endTime', 'from', 'to', 'xPosStart', 'yPosStart',
+                'xPosEnd', 'yPosEnd', 'goal', 'ownGoal']
+        df_events = df_events[cols].copy()
+
+        sub_event_col = "subtype"
+
+    # if it should be returned in the Wyscout format
+    else:
+        warn_message = "Be careful when using Wyscout format. Not everything might be converted from Metrica to Wyscout"
+        warnings.warn(warn_message, category=ImportWarning)
+
+        # rename some columns to match the wyscout format
+        cols_new = {"startTime": "eventSec",
+                    "endTime": "eventSecEnd",
+                    "from": "playerName",
+                    "to": "toPlayerName",
+                    "xPosStart": "posBeforeXMeters",
+                    "yPosStart": "posBeforeYMeters",
+                    "xPosEnd": "posAfterXMeters",
+                    "yPosEnd": "posAfterYMeters"
+                    }
+
+        df_events = df_events.rename(columns=cols_new)
+
+        # only keep the relevant columns
+        cols = ["id", "matchId", "matchPeriod", "eventSec", "eventSecEnd", "startFrame", "endFrame", "eventName",
+                "subEventName",
+                "teamId", "team", "posBeforeXMeters", "posBeforeYMeters", "posAfterXMeters", "posAfterYMeters",
+                "playerId",
+                "playerName", "playerPosition", "toPlayerId", "toPlayerName", "homeTeamId", "awayTeamId", "accurate",
+                "goal", "ownGoal"]
+        df_events = df_events[cols].copy()
+
+        # do not keep two columns for the set pieces
+        df_set = df_events[df_events["eventName"] == "Set piece"].copy()
+        df_no_set = df_events[df_events["eventName"] != "Set piece"].copy()
+
+        df_set.sort_values(["startFrame", "endFrame"], inplace=True)
+        df_set.drop_duplicates("startFrame", keep="last", inplace=True)
+
+        df_events = pd.concat([df_set, df_no_set])
+        df_events.sort_values(["startFrame", "endFrame"])
+        df_events["id"] = np.arange(len(df_events))
+
+        sub_event_col = "subEventName"
+
+        df_formations = read_data("formation_data", league=str(game), data_folder="metrica_data")
+
+    df_events[sub_event_col] = np.where(df_events[sub_event_col] == "  ", np.nan, df_events[sub_event_col])
+    df_events.sort_values(["startFrame", "endFrame"], inplace=True)
+    df_events.reset_index(inplace=True, drop=True)
+
+    # return both event data and formation data in case of the Wyscout format
+    if wyscout_format:
+        return df_events, df_formations
+    else:
+        return df_events
+
+
+def read_tracking_data(game, clean=True):
+    """
+    Read the Metrica tracking data
+    :param game: (int) Game identifier
+    :param clean: (bool) If True, the cleaned positions of the ball are returned
+    :return: pd.DataFrame with the tracking data of the *game*
+    """
+
+    # read the event data
+    df = read_data("tracking_data", league=str(game), data_folder="metrica_data")
+
+    cols = ["frame", "time", "period", "xPos", "yPos", "playerId", "team"]
+
+    if not clean:
+
+        df["xPos"] = df["xPosMetrica"]
+        df["yPos"] = df["yPosMetrica"]
+
+    else:
+
+        cols += ["xPosMetrica", "yPosMetrica", "ballInPlay", "outOfBounds", "outPeriod"]
+
+        # the first frames in game number 1 are messed up
+        if game == 1:
+            df = df[df["frame"] >= 5].copy()
+
+    return df[cols].copy()
+
+
+def read_raw_tracking_data(full_path, teamname):
+    """
+    Read the raw tracking Metrica tracking data (function mostly copied from Laurie's solution on FoT
+    :param full_path: (str) path were the tracking data is stored
+    :param teamname: (str) Name of the team, either "Home" or "Away"
+    :return: pd.DataFrame with the raw tracking data
+    """
+
+    # First:  deal with file headers so that we can get the player names correct
+    csvfile = open(full_path, 'r')
+
+    reader = csv.reader(csvfile)
+
+    _ = next(reader)[3].lower()
+
+    # construct column names
+    ########################
+
+    # extract player jersey numbers from second row
+    jerseys = [x for x in next(reader) if x != '']
+    columns = next(reader)
+
+    # create x & y position column headers for each player
+    teamname = teamname[0].upper() + teamname[1:]
+    for i, j in enumerate(jerseys):
+        columns[i*2+3] = "{}_{}_x".format(teamname, j)
+        columns[i*2+4] = "{}_{}_y".format(teamname, j)
+
+    # column headers for the x & y positions of the ball
+    columns[-2] = "ball_x"
+    columns[-1] = "ball_y"
+
+    # Second: read in tracking data and place into pandas Dataframe
+    tracking = pd.read_csv(full_path, names=columns, skiprows=3)
+    return tracking
 
 
 def write_data(df, data_type, league=None, data_folder=None):
