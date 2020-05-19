@@ -1,4 +1,3 @@
-
 # import packages
 
 import pandas as pd
@@ -48,7 +47,9 @@ def attach_goals_to_tracking_data(df_track, df_events):
 
     lst_goal_frames = list()
     for i, row in df_goal.iterrows():
-        tmp_df = pd.DataFrame({"frame": np.arange(row["startFrame"], row["nextStartFrame"]), "goal": 1})
+        tmp_df = pd.DataFrame(
+            {"frame": np.arange(row["startFrame"], row["nextStartFrame"]), "goal": 1}
+        )
         lst_goal_frames.append(tmp_df)
     df_goal_frames = pd.concat(lst_goal_frames)
 
@@ -58,7 +59,7 @@ def attach_goals_to_tracking_data(df_track, df_events):
     return df_track
 
 
-class trackingDataVisualizer():
+class trackingDataVisualizer:
     """
     add_team_convex_hull
     remove_team_convex_hull
@@ -82,20 +83,22 @@ class trackingDataVisualizer():
     get_figure
     """
 
-    def __init__(self,
-                 df,
-                 df_events,
-                 size=1,
-                 speed=1,
-                 home_team_colour="red",
-                 away_team_colour="blue",
-                 ball_colour="white",
-                 player_size=12,
-                 ball_size=9,
-                 team_front="Away",
-                 show_player_numbers=False,
-                 highlight_interruptions=True,
-                 debug=False):
+    def __init__(
+        self,
+        df,
+        df_events,
+        size=1,
+        speed=1,
+        home_team_colour="red",
+        away_team_colour="blue",
+        ball_colour="white",
+        player_size=12,
+        ball_size=9,
+        team_front="Away",
+        show_player_numbers=False,
+        highlight_interruptions=True,
+        debug=False,
+    ):
 
         self.all_track_data = df.copy()
         self.event_data = df_events.copy()
@@ -111,12 +114,14 @@ class trackingDataVisualizer():
         self.highlight_interruptions = highlight_interruptions
         self.additional_text = False
 
-        self.data_layers = {"convex_hull": 0,
-                            "packing": 0,
-                            "extreme_lines": 0,
-                            "player_lines": 0,
-                            "players": 0,
-                            "ball": 0}
+        self.data_layers = {
+            "convex_hull": 0,
+            "packing": 0,
+            "extreme_lines": 0,
+            "player_lines": 0,
+            "players": 0,
+            "ball": 0,
+        }
 
         self.frame_start = None
         self.frame_end = None
@@ -135,8 +140,11 @@ class trackingDataVisualizer():
 
         self.convex_hulls = None
 
-        self.player_positions = df_events.groupby(["playerId", "team"]).agg(
-            playerPosition=("playerPosition", "min")).reset_index()
+        self.player_positions = (
+            df_events.groupby(["playerId", "team"])
+            .agg(playerPosition=("playerPosition", "min"))
+            .reset_index()
+        )
 
         self.players_with_lines = []
 
@@ -147,7 +155,9 @@ class trackingDataVisualizer():
             self.sort_directions = [True, True, True]
 
         if highlight_interruptions:
-            self.all_track_data = attach_goals_to_tracking_data(self.all_track_data, self.event_data)
+            self.all_track_data = attach_goals_to_tracking_data(
+                self.all_track_data, self.event_data
+            )
 
     def _get_layer_index(self, layer_name):
 
@@ -205,7 +215,9 @@ class trackingDataVisualizer():
         )
         return layout
 
-    def _build_marker_dict(self, df, marker_size, x_col="xPos", y_col="yPos", color_col="colour"):
+    def _build_marker_dict(
+        self, df, marker_size, x_col="xPos", y_col="yPos", color_col="colour"
+    ):
 
         if self.show_player_numbers:
             dict_out = dict(
@@ -213,17 +225,14 @@ class trackingDataVisualizer():
                 x=np.array(df[x_col]),
                 y=np.array(df[y_col]),
                 mode="markers+text",
-                marker=dict(color=np.array(df[color_col]),
-                            line=dict(width=2,
-                                      color="black"),
-                            size=marker_size),
-                text=np.array(df["playerId"]),
-                textfont=dict(
-                    family="sans serif",
-                    size=7,
-                    color="white"
+                marker=dict(
+                    color=np.array(df[color_col]),
+                    line=dict(width=2, color="black"),
+                    size=marker_size,
                 ),
-                hoverinfo="none"
+                text=np.array(df["playerId"]),
+                textfont=dict(family="sans serif", size=7, color="white"),
+                hoverinfo="none",
             )
         else:
             dict_out = dict(
@@ -231,11 +240,12 @@ class trackingDataVisualizer():
                 x=np.array(df[x_col]),
                 y=np.array(df[y_col]),
                 mode="markers",
-                marker=dict(color=np.array(df[color_col]),
-                            line=dict(width=2,
-                                      color="black"),
-                            size=marker_size),
-                hoverinfo="none"
+                marker=dict(
+                    color=np.array(df[color_col]),
+                    line=dict(width=2, color="black"),
+                    size=marker_size,
+                ),
+                hoverinfo="none",
             )
         return dict_out
 
@@ -248,7 +258,7 @@ class trackingDataVisualizer():
             y=[pos[1] for pos in points],
             mode="lines",
             line=dict(color=colour),
-            hoverinfo="none"
+            hoverinfo="none",
         )
 
         return dict_out
@@ -263,7 +273,8 @@ class trackingDataVisualizer():
             mode="none",
             fill="toself",
             fillcolor=colour,
-            hoverinfo="none")
+            hoverinfo="none",
+        )
 
         return dict_out
 
@@ -277,7 +288,7 @@ class trackingDataVisualizer():
             mode="text",
             text=str(np.array(text)),
             textfont=dict(color=colour),
-            hoverinfo="none"
+            hoverinfo="none",
         )
         return dict_text
 
@@ -355,9 +366,12 @@ class trackingDataVisualizer():
             goalies = self._return_players_for_positions(["GK"])
             df = df[~df["playerId"].isin(goalies)]
 
-        df_extreme_pos = df[(df["team"] == team) &
-                            (df["playerId"] != -1)]. \
-            groupby("frame").agg(extremePosition=("xPos", agg)).reset_index()
+        df_extreme_pos = (
+            df[(df["team"] == team) & (df["playerId"] != -1)]
+            .groupby("frame")
+            .agg(extremePosition=("xPos", agg))
+            .reset_index()
+        )
         df_extreme_pos.columns = ["frame", f"xxx{min_max}Position{team}xxx"]
         df = pd.merge(df_out, df_extreme_pos)
         return df
@@ -365,20 +379,34 @@ class trackingDataVisualizer():
     @staticmethod
     def _remove_extreme_positions(df, team, min_max):
         if team == "all":
-            cols = [col for col in df.columns if col.startswith(f"xxx{min_max}Position")]
+            cols = [
+                col for col in df.columns if col.startswith(f"xxx{min_max}Position")
+            ]
         else:
-            cols = [col for col in df.columns if col == f"xxx{min_max}Position{team}xxx"]
+            cols = [
+                col for col in df.columns if col == f"xxx{min_max}Position{team}xxx"
+            ]
         df.drop(cols, axis=1, inplace=True)
         return df, len(cols)
 
     def _return_players_for_positions(self, positions, team="all"):
         if team == "all":
-            return list(self.player_positions[self.player_positions["playerPosition"].isin(positions)]["playerId"])
+            return list(
+                self.player_positions[
+                    self.player_positions["playerPosition"].isin(positions)
+                ]["playerId"]
+            )
         else:
-            return list(self.player_positions[(self.player_positions["playerPosition"].isin(positions)) &
-                                              (self.player_positions["team"] == team)]["playerId"])
+            return list(
+                self.player_positions[
+                    (self.player_positions["playerPosition"].isin(positions))
+                    & (self.player_positions["team"] == team)
+                ]["playerId"]
+            )
 
-    def add_team_convex_hull(self, team, exclude_positions=["GK"], exclude_players=[], lst_hulls=None):
+    def add_team_convex_hull(
+        self, team, exclude_positions=["GK"], exclude_players=[], lst_hulls=None
+    ):
 
         if type(exclude_players) != list:
             raise ValueError("exclude_players must be a list of player Ids")
@@ -387,7 +415,9 @@ class trackingDataVisualizer():
             raise ValueError("lst_hulls must be a list")
 
         if lst_hulls is not None and len(lst_hulls) != len(self.frames):
-            raise ValueError("List of convex hulls must have the same length as the frames")
+            raise ValueError(
+                "List of convex hulls must have the same length as the frames"
+            )
 
         if team not in ["Home", "Away"]:
             raise ValueError("Team must take value *Home* or *Away*")
@@ -409,9 +439,11 @@ class trackingDataVisualizer():
 
         for i in sorted(np.unique(self.seq_data["frame"])):
 
-            tmp_player = df_players[(df_players["frame"] == i) &
-                                    (df_players["team"] == team) &
-                                    ~(df_players["playerId"].isin(exclude_players))]
+            tmp_player = df_players[
+                (df_players["frame"] == i)
+                & (df_players["team"] == team)
+                & ~(df_players["playerId"].isin(exclude_players))
+            ]
 
             if lst_hulls is not None:
                 convex_hull = self._build_convex_hull_dict(tmp_player, lst_hulls[k])
@@ -451,10 +483,16 @@ class trackingDataVisualizer():
         draw_convex_hull = self.data_layers["convex_hull"] > 0
 
         draw_ext_lines = self.data_layers["extreme_lines"] > 0
-        cols_extreme = [col for col in self.seq_data.columns if col.startswith("xxx") and "Position" in col]
+        cols_extreme = [
+            col
+            for col in self.seq_data.columns
+            if col.startswith("xxx") and "Position" in col
+        ]
 
         draw_player_lines = self.data_layers["player_lines"] > 0
-        cols_player_lines = [col for col in self.seq_data.columns if col.startswith("xxxPositionLine")]
+        cols_player_lines = [
+            col for col in self.seq_data.columns if col.startswith("xxxPositionLine")
+        ]
 
         for k, i in enumerate(sorted(np.unique(self.seq_data["frame"]))):
 
@@ -481,7 +519,11 @@ class trackingDataVisualizer():
             # add extreme lines
             if draw_ext_lines:
                 for col in cols_extreme:
-                    colour = self.home_team_colour if "Home" in col else self.away_team_colour
+                    colour = (
+                        self.home_team_colour
+                        if "Home" in col
+                        else self.away_team_colour
+                    )
                     pos = tmp_ball.iloc[0][col]
                     dict_extreme = self._build_line_dict([[pos, 0], [pos, 68]], colour)
                     data.append(dict_extreme)
@@ -489,7 +531,9 @@ class trackingDataVisualizer():
             # add player lines
             if draw_player_lines:
                 for col in cols_player_lines:
-                    dict_player_line = self._build_line_dict(tmp_ball.iloc[0][col], "black")
+                    dict_player_line = self._build_line_dict(
+                        tmp_ball.iloc[0][col], "black"
+                    )
                     data.append(dict_player_line)
 
             # add all players
@@ -507,20 +551,28 @@ class trackingDataVisualizer():
 
             # add the frame number on the bottom left
             if self.debug:
-                frame_data = self._build_text_dict(f"Frame: {tmp_ball.iloc[0]['frame']}", 8, -2.5)
+                frame_data = self._build_text_dict(
+                    f"Frame: {tmp_ball.iloc[0]['frame']}", 8, -2.5
+                )
                 data.append(frame_data)
 
             # in case interruption callouts should be shown on top of the field
             if self.highlight_interruptions:
-                text, text_colour, rect_colour = self._build_interruption_callout(tmp_ball)
-                rectangle_data = self._build_rectangle_dict(42.5, 62.5, 68.5, 72.5, rect_colour)
+                text, text_colour, rect_colour = self._build_interruption_callout(
+                    tmp_ball
+                )
+                rectangle_data = self._build_rectangle_dict(
+                    42.5, 62.5, 68.5, 72.5, rect_colour
+                )
                 interrupt_data = self._build_text_dict(text, 52.5, 70.5, text_colour)
                 data.append(rectangle_data)
                 data.append(interrupt_data)
 
             # add additional text on the top right of the field
             if self.additional_text:
-                additional_text = self._build_text_dict(tmp_ball.iloc[0]["xxxAdditionalTextxxx"], 92.5, 70.5)
+                additional_text = self._build_text_dict(
+                    tmp_ball.iloc[0]["xxxAdditionalTextxxx"], 92.5, 70.5
+                )
                 data.append(additional_text)
 
             frame = dict(data=data)
@@ -538,26 +590,38 @@ class trackingDataVisualizer():
         self._set_initial_frames()
 
         if self.label_info_players is not None:
-            cols = [self.label_info_players[key]["values"] for key in self.label_info_players]
+            cols = [
+                self.label_info_players[key]["values"]
+                for key in self.label_info_players
+            ]
             if all([col in self.seq_data.columns for col in cols]):
-                self.add_hovertext(self.label_info_players, on_players=True, on_ball=False)
+                self.add_hovertext(
+                    self.label_info_players, on_players=True, on_ball=False
+                )
 
         if self.label_info_ball is not None:
             cols = [self.label_info_ball[key]["values"] for key in self.label_info_ball]
             if all([col in self.seq_data.columns for col in cols]):
-                self.add_hovertext(self.label_info_players, on_players=False, on_ball=True)
+                self.add_hovertext(
+                    self.label_info_players, on_players=False, on_ball=True
+                )
 
     def _set_sequence_data(self, lazy=True):
 
-        df = self.all_track_data[(self.all_track_data["frame"] >= self.frame_start) &
-                                 (self.all_track_data["frame"] <= self.frame_end)].copy()
+        df = self.all_track_data[
+            (self.all_track_data["frame"] >= self.frame_start)
+            & (self.all_track_data["frame"] <= self.frame_end)
+        ].copy()
 
-        df.sort_values(["frame", "team", "playerId"],
-                       ascending=self.sort_directions,
-                       inplace=True)
+        df.sort_values(
+            ["frame", "team", "playerId"], ascending=self.sort_directions, inplace=True
+        )
 
-        df["colour"] = np.where(df["team"] == "Home", self.home_team_colour,
-                                np.where(df["team"] == "Ball", self.ball_colour, self.away_team_colour))
+        df["colour"] = np.where(
+            df["team"] == "Home",
+            self.home_team_colour,
+            np.where(df["team"] == "Ball", self.ball_colour, self.away_team_colour),
+        )
 
         if self.seq_data is not None:
             seq_data_old = self.seq_data.copy()
@@ -591,7 +655,9 @@ class trackingDataVisualizer():
             self.add_player_position_lines(self.players_with_lines, lazy=True)
 
         if self.highlighted_players is not None:
-            self.highlight_players(self.highlighted_players, self.highlighted_colours, lazy=lazy)
+            self.highlight_players(
+                self.highlighted_players, self.highlighted_colours, lazy=lazy
+            )
 
         else:
             if not lazy:
@@ -622,16 +688,18 @@ class trackingDataVisualizer():
             raise ValueError("Colours must either be a string or a list of strings")
 
         if len(players) != len(colours):
-            raise ValueError("Make sure that *players* and *colours* have the same length")
+            raise ValueError(
+                "Make sure that *players* and *colours* have the same length"
+            )
 
         self.highlighted_players = players
         self.highlighted_colours = colours
 
         # update the colours of the players
         for i, player in enumerate(players):
-            self.seq_data["colour"] = np.where(self.seq_data["playerId"] == player,
-                                               colours[i],
-                                               self.seq_data["colour"])
+            self.seq_data["colour"] = np.where(
+                self.seq_data["playerId"] == player, colours[i], self.seq_data["colour"]
+            )
 
         if not lazy:
             self._set_frames()
@@ -662,12 +730,20 @@ class trackingDataVisualizer():
         if start_time < self.all_track_data["time"].min():
             self.frame_start = 0
         else:
-            self.frame_start = int(self.all_track_data[self.all_track_data["time"] <= start_time]["frame"].max())
+            self.frame_start = int(
+                self.all_track_data[self.all_track_data["time"] <= start_time][
+                    "frame"
+                ].max()
+            )
 
         if end_time > self.all_track_data["time"].max():
             self.frame_end = self.all_track_data["frame"].max()
         else:
-            self.frame_end = int(self.all_track_data[self.all_track_data["time"] >= end_time]["frame"].min())
+            self.frame_end = int(
+                self.all_track_data[self.all_track_data["time"] >= end_time][
+                    "frame"
+                ].min()
+            )
 
         self._set_sequence_data(lazy)
 
@@ -701,7 +777,9 @@ class trackingDataVisualizer():
                 self.lazy_change = True
 
     def remove_offensive_line(self, team="all", lazy=True):
-        self.seq_data, nb_removed = self._remove_extreme_positions(self.seq_data, team, "max")
+        self.seq_data, nb_removed = self._remove_extreme_positions(
+            self.seq_data, team, "max"
+        )
         self.data_layers["extreme_lines"] -= nb_removed
 
         if not lazy:
@@ -720,7 +798,9 @@ class trackingDataVisualizer():
                 self.lazy_change = True
 
     def remove_defensive_line(self, team="all", lazy=True):
-        self.seq_data, nb_removed = self._remove_extreme_positions(self.seq_data, team, "min")
+        self.seq_data, nb_removed = self._remove_extreme_positions(
+            self.seq_data, team, "min"
+        )
         self.data_layers["extreme_lines"] -= nb_removed
 
         if not lazy:
@@ -737,9 +817,15 @@ class trackingDataVisualizer():
 
             df_players = df[df["playerId"].isin(tmp_players)].copy()
             df_players.sort_values(["frame", "yPos"], inplace=True)
-            df_players["position"] = df_players.apply(lambda row: [row["xPos"], row["yPos"]], axis=1)
+            df_players["position"] = df_players.apply(
+                lambda row: [row["xPos"], row["yPos"]], axis=1
+            )
 
-            df_agg = df_players.groupby("frame")["position"].agg(lambda x: list(x)).reset_index()
+            df_agg = (
+                df_players.groupby("frame")["position"]
+                .agg(lambda x: list(x))
+                .reset_index()
+            )
 
             cols = [col for col in df.columns if col.startswith("xxxPositionLine")]
             colname = f"xxxPositionLine{len(cols) + 1}"
@@ -772,7 +858,9 @@ class trackingDataVisualizer():
         self.data_layers["player_lines"] = 0
         self.players_with_lines = []
 
-        cols = [col for col in self.seq_data.columns if col.startswith("xxxPositionLine")]
+        cols = [
+            col for col in self.seq_data.columns if col.startswith("xxxPositionLine")
+        ]
         self.seq_data.drop(cols, axis=1, inplace=True)
 
         if not lazy:
@@ -804,9 +892,13 @@ class trackingDataVisualizer():
 
         for i, frame in enumerate(sorted(df["frame"].unique())):
             self.frames[i]["data"][index]["hoverinfo"] = "text"
-            self.frames[i]["data"][index]["hovertext"] = np.array(df[df["frame"] == frame]["hoverText"])
+            self.frames[i]["data"][index]["hovertext"] = np.array(
+                df[df["frame"] == frame]["hoverText"]
+            )
 
-    def add_hovertext(self, label_info, df=None, on_players=True, on_ball=False, lazy=True):
+    def add_hovertext(
+        self, label_info, df=None, on_players=True, on_ball=False, lazy=True
+    ):
 
         if self.lazy_change:
             self._set_frames()
@@ -815,16 +907,22 @@ class trackingDataVisualizer():
             df = self.seq_data.copy()
         else:
             if list(df["frame"].unique()) != list(self.seq_data["frame"].unique()):
-                raise ValueError("Data frame with hovertext needs to have the same frames as the current data sequence")
+                raise ValueError(
+                    "Data frame with hovertext needs to have the same frames as the current data sequence"
+                )
 
-        df.sort_values(["frame", "team", "playerId"],
-                       ascending=self.sort_directions,
-                       inplace=True)
+        df.sort_values(
+            ["frame", "team", "playerId"], ascending=self.sort_directions, inplace=True
+        )
 
         if not on_players and not on_ball:
-            raise ValueError("Hover information must be shown on either the players or the ball")
+            raise ValueError(
+                "Hover information must be shown on either the players or the ball"
+            )
 
-        df["hoverText"] = df.apply(lambda row: _build_hover_text(row, label_info), axis=1)
+        df["hoverText"] = df.apply(
+            lambda row: _build_hover_text(row, label_info), axis=1
+        )
 
         frames = self.frames
         if on_players:
@@ -878,7 +976,10 @@ class trackingDataVisualizer():
         x_goal = 0 if team == "Home" else 105
         y_goal = 34
 
-        dist = np.sqrt((x_ball - x_goal) * (x_ball - x_goal) + (y_ball - y_goal) * (y_ball - y_goal))
+        dist = np.sqrt(
+            (x_ball - x_goal) * (x_ball - x_goal)
+            + (y_ball - y_goal) * (y_ball - y_goal)
+        )
 
         y_min = np.max([0, y_goal - dist])
         y_max = np.min([68, y_goal + dist])
@@ -890,9 +991,19 @@ class trackingDataVisualizer():
         y_lst = [y_min + i * steps for i in np.arange(numbers + 1)]
 
         if team == "Home":
-            x_lst = np.array([x_goal + np.sqrt(np.abs(dist * dist - (y - y_goal) * (y - y_goal))) for y in y_lst])
+            x_lst = np.array(
+                [
+                    x_goal + np.sqrt(np.abs(dist * dist - (y - y_goal) * (y - y_goal)))
+                    for y in y_lst
+                ]
+            )
         else:
-            x_lst = np.array([x_goal - np.sqrt(np.abs(dist * dist - (y - y_goal) * (y - y_goal))) for y in y_lst])
+            x_lst = np.array(
+                [
+                    x_goal - np.sqrt(np.abs(dist * dist - (y - y_goal) * (y - y_goal)))
+                    for y in y_lst
+                ]
+            )
 
         y_lst = list(y_lst)
         x_lst = list(x_lst)
@@ -909,14 +1020,16 @@ class trackingDataVisualizer():
     def _build_dict_packing(self, x_ball, y_ball, team):
         x_vals, y_vals = self._compute_packing_line(x_ball, y_ball, team)
 
-        dict_out = dict(x=x_vals,
-                        y=y_vals,
-                        mode="lines",
-                        opacity=0.5,
-                        line=dict(color="black"),
-                        showlegend=False,
-                        fill="toself",
-                        hoverinfo="none")
+        dict_out = dict(
+            x=x_vals,
+            y=y_vals,
+            mode="lines",
+            opacity=0.5,
+            line=dict(color="black"),
+            showlegend=False,
+            fill="toself",
+            hoverinfo="none",
+        )
         return dict_out
 
     def add_packing_line(self, defensive_team, lazy=True):
@@ -926,9 +1039,18 @@ class trackingDataVisualizer():
         df_ball = self.seq_data[self.seq_data["playerId"] == -1].copy()
 
         df_ball["xxxPackingDictxxx"] = df_ball.apply(
-            lambda row: self._build_dict_packing(row["xPos"], row["yPos"], defensive_team), axis=1)
+            lambda row: self._build_dict_packing(
+                row["xPos"], row["yPos"], defensive_team
+            ),
+            axis=1,
+        )
 
-        self.seq_data = pd.merge(self.seq_data, df_ball[["frame", "xxxPackingDictxxx"]], how="left", on="frame")
+        self.seq_data = pd.merge(
+            self.seq_data,
+            df_ball[["frame", "xxxPackingDictxxx"]],
+            how="left",
+            on="frame",
+        )
 
         if not lazy:
             self._set_frames()
@@ -1020,7 +1142,10 @@ class trackingDataVisualizer():
 
         for i, row in df.iterrows():
 
-            if self.highlighted_players is not None and row["playerId"] in self.highlighted_players:
+            if (
+                self.highlighted_players is not None
+                and row["playerId"] in self.highlighted_players
+            ):
                 ix = self.highlighted_players.index(row["playerId"])
                 colour = self.highlighted_colours[ix]
             else:
@@ -1054,5 +1179,7 @@ class trackingDataVisualizer():
             layout["updatemenus"] = None
             fig = go.Figure(dict(data=self.frames[0]["data"], layout=layout))
         else:
-            fig = dict(data=self.frames[0]["data"], layout=self.layout, frames=self.frames)
+            fig = dict(
+                data=self.frames[0]["data"], layout=self.layout, frames=self.frames
+            )
         return fig

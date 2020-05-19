@@ -10,8 +10,8 @@ import helper.tracking_data as td_help
 
 logging.basicConfig(level=logging.DEBUG)
 
-pd.set_option('display.max_columns', None)
-pd.set_option('display.max_rows', None)
+pd.set_option("display.max_columns", None)
+pd.set_option("display.max_rows", None)
 
 
 def extract_ball_data(df_home):
@@ -43,7 +43,15 @@ def convert_to_long_data_frame(df, teamname):
     colnames_new = ["period", "frame", "time", "xPos", "yPos"]
 
     for player in players:
-        tmp_df = df[["Period", "Frame", "Time [s]", f"{teamname}_{player}_x", f"{teamname}_{player}_y"]].copy()
+        tmp_df = df[
+            [
+                "Period",
+                "Frame",
+                "Time [s]",
+                f"{teamname}_{player}_x",
+                f"{teamname}_{player}_y",
+            ]
+        ].copy()
         tmp_df.columns = colnames_new
 
         tmp_df = tmp_df[tmp_df["xPos"].notnull()].copy()
@@ -94,8 +102,11 @@ def touch_overview_table(df):
     """
 
     # aggregate the ball tracking data to touch level
-    df_touches = df.groupby("touchId").agg(frameStart=("frame", "min"),
-                                           frameEnd=("frame", "max")).reset_index()
+    df_touches = (
+        df.groupby("touchId")
+        .agg(frameStart=("frame", "min"), frameEnd=("frame", "max"))
+        .reset_index()
+    )
 
     # get the starting point and frame for each touch
     df_points_start = df[["frame", "xPos", "yPos"]].copy()
@@ -110,8 +121,12 @@ def touch_overview_table(df):
     df_touches["totalFrames"] = df_touches["frameEnd"] - df_touches["frameStart"] + 1
 
     # compute the steps the ball needs to make in each direction for it to be at the starting point of the new touch
-    df_touches["dx"] = (df_touches["xPosStartNext"] - df_touches["xPosStart"]) / df_touches["totalFrames"]
-    df_touches["dy"] = (df_touches["yPosStartNext"] - df_touches["yPosStart"]) / df_touches["totalFrames"]
+    df_touches["dx"] = (
+        df_touches["xPosStartNext"] - df_touches["xPosStart"]
+    ) / df_touches["totalFrames"]
+    df_touches["dy"] = (
+        df_touches["yPosStartNext"] - df_touches["yPosStart"]
+    ) / df_touches["totalFrames"]
 
     return df_touches
 
@@ -123,17 +138,25 @@ def identify_touches_to_fix(df_touches, df_issues):
     :param df_issues: (pd.DataFrame) Data frame with all frames in which there is an issue with the ball data
     :return: pd.DataFrame with all touches that need to be fixed
     """
-    df_issues = df_issues.groupby("touchId").agg(nbTouches=("touchId", "size"),
-                                                 firstFrameIssue=("frame", "min")).reset_index()
+    df_issues = (
+        df_issues.groupby("touchId")
+        .agg(nbTouches=("touchId", "size"), firstFrameIssue=("frame", "min"))
+        .reset_index()
+    )
 
     touches_with_issue = pd.merge(df_touches, df_issues, on="touchId", how="inner")
 
     touches_to_fix = touches_with_issue[
-        touches_with_issue["frameStart"] == touches_with_issue["firstFrameIssue"]].copy()
+        touches_with_issue["frameStart"] == touches_with_issue["firstFrameIssue"]
+    ].copy()
     touches_to_fix["touchIdBefore"] = touches_to_fix["touchId"] - 1
 
-    df_touches_fix = pd.merge(df_touches, touches_to_fix[["touchIdBefore"]], left_on="touchId",
-                              right_on="touchIdBefore")
+    df_touches_fix = pd.merge(
+        df_touches,
+        touches_to_fix[["touchIdBefore"]],
+        left_on="touchId",
+        right_on="touchIdBefore",
+    )
 
     return df_touches_fix
 
@@ -149,7 +172,9 @@ def compute_new_ball_positions(df):
         frames = [int(frame) for frame in np.arange(frame_start, row["frameEnd"] + 1)]
         x_pos_new = row["xPosStart"] + (frames - frame_start) * row["dx"]
         y_pos_new = row["yPosStart"] + (frames - frame_start) * row["dy"]
-        tmp_df = pd.DataFrame({"frame": frames, "xPosNew": x_pos_new, "yPosNew": y_pos_new})
+        tmp_df = pd.DataFrame(
+            {"frame": frames, "xPosNew": x_pos_new, "yPosNew": y_pos_new}
+        )
         lst_new_positions.append(tmp_df)
 
     df_new_positions = pd.concat(lst_new_positions)
@@ -163,8 +188,12 @@ def set_out_ball(df_ball, game, out_to_nan=15):
     """
 
     # ball is out out bounds if the position is out of the field
-    df_ball["outOfBounds"] = 1 * ((df_ball["xPos"] < 0) | (df_ball["xPos"] > 105) |
-                                  (df_ball["yPos"] < 0) | (df_ball["yPos"] > 68))
+    df_ball["outOfBounds"] = 1 * (
+        (df_ball["xPos"] < 0)
+        | (df_ball["xPos"] > 105)
+        | (df_ball["yPos"] < 0)
+        | (df_ball["yPos"] > 68)
+    )
 
     # ball is considered out if it is out of bounds or there is no ball position
     df_ball["ballOut"] = 1 * (df_ball["outOfBounds"] | df_ball["xPos"].isnull())
@@ -175,11 +204,16 @@ def set_out_ball(df_ball, game, out_to_nan=15):
     elif game == 2:
         out_ball_game = [[7891, 8147], [21199, 21636]]
     else:
-        raise ValueError(f"Please double check that no manual out balls need to be set for game {game}")
+        raise ValueError(
+            f"Please double check that no manual out balls need to be set for game {game}"
+        )
 
     for frames in out_ball_game:
-        df_ball["ballOut"] = np.where((df_ball["frame"] >= frames[0]) & (df_ball["frame"] <= frames[1]), 1,
-                                       df_ball["ballOut"])
+        df_ball["ballOut"] = np.where(
+            (df_ball["frame"] >= frames[0]) & (df_ball["frame"] <= frames[1]),
+            1,
+            df_ball["ballOut"],
+        )
 
     # for each frame in which the ball is out attach how long the ball has been out (in frames)
     k = 0
@@ -202,14 +236,22 @@ def set_out_ball(df_ball, game, out_to_nan=15):
 
     # update whether the ball was out of bounds by checking that it was out of bounds in at least one frame
     # during the out-of-play period
-    df_out_of_bounds = df_ball.groupby("outPeriod").agg(outOfBounds=("outOfBounds", "max")).reset_index()
+    df_out_of_bounds = (
+        df_ball.groupby("outPeriod")
+        .agg(outOfBounds=("outOfBounds", "max"))
+        .reset_index()
+    )
     df_ball.drop("outOfBounds", axis=1, inplace=True)
     df_ball = pd.merge(df_ball, df_out_of_bounds, on="outPeriod")
     df_ball.sort_values("frame", inplace=True)
 
     # if the ball has been out for more than *out_to_nan* frames, we set the position to NaN
-    df_ball["xPos"] = np.where(df_ball["counterOut"] > out_to_nan, np.nan, df_ball["xPos"])
-    df_ball["yPos"] = np.where(df_ball["counterOut"] > out_to_nan, np.nan, df_ball["yPos"])
+    df_ball["xPos"] = np.where(
+        df_ball["counterOut"] > out_to_nan, np.nan, df_ball["xPos"]
+    )
+    df_ball["yPos"] = np.where(
+        df_ball["counterOut"] > out_to_nan, np.nan, df_ball["yPos"]
+    )
 
     return df_ball
 
@@ -241,17 +283,27 @@ def cleanse_ball_tracking_data(df_ball, game, nb_out_frames=25):
     df_ball = td_help.add_touch_id(df_ball)
 
     # number of frames the ball is out or tracking data it missing
-    df_frames_out = df_ball.groupby("outPeriod").agg(nbFramesOut=("frame", "count")).reset_index()
+    df_frames_out = (
+        df_ball.groupby("outPeriod").agg(nbFramesOut=("frame", "count")).reset_index()
+    )
     df_ball = pd.merge(df_ball, df_frames_out, on="outPeriod", how="left")
 
     # update the touchId for situations with tracking error
-    df_ball["touchId"] = np.where((df_ball["nbFramesOut"] < nb_out_frames) & (df_ball["outOfBounds"] == 0), np.nan, df_ball["touchId"])
+    df_ball["touchId"] = np.where(
+        (df_ball["nbFramesOut"] < nb_out_frames) & (df_ball["outOfBounds"] == 0),
+        np.nan,
+        df_ball["touchId"],
+    )
     df_ball["touchId"].fillna(method="ffill", inplace=True)
 
     # update the ball out columns in case there are only few frames missing in the middle of the game
-    df_ball["ballOutNew"] = np.where((df_ball["nbFramesOut"] <= nb_out_frames) &
-                                   (df_ball["ballOut"] == 1) &
-                                   (df_ball["outOfBounds"] == 0), 0, df_ball["ballOut"])
+    df_ball["ballOutNew"] = np.where(
+        (df_ball["nbFramesOut"] <= nb_out_frames)
+        & (df_ball["ballOut"] == 1)
+        & (df_ball["outOfBounds"] == 0),
+        0,
+        df_ball["ballOut"],
+    )
 
     # update the ball position for the situations with missing frames
     df_ball["xPosTemp"] = df_ball["xPos"].copy()
@@ -260,8 +312,16 @@ def cleanse_ball_tracking_data(df_ball, game, nb_out_frames=25):
     df_ball["xPos"].fillna(method="ffill", inplace=True)
     df_ball["yPos"].fillna(method="ffill", inplace=True)
 
-    df_ball["xPos"] = np.where(df_ball["ballOutNew"] != df_ball["ballOut"], df_ball["xPos"], df_ball["xPosTemp"])
-    df_ball["yPos"] = np.where(df_ball["ballOutNew"] != df_ball["ballOut"], df_ball["yPos"], df_ball["yPosTemp"])
+    df_ball["xPos"] = np.where(
+        df_ball["ballOutNew"] != df_ball["ballOut"],
+        df_ball["xPos"],
+        df_ball["xPosTemp"],
+    )
+    df_ball["yPos"] = np.where(
+        df_ball["ballOutNew"] != df_ball["ballOut"],
+        df_ball["yPos"],
+        df_ball["yPosTemp"],
+    )
 
     # delete columns that are not needed any more
     df_ball["ballOut"] = df_ball["ballOutNew"]
@@ -298,11 +358,17 @@ def cleanse_ball_tracking_data(df_ball, game, nb_out_frames=25):
     df_ball.drop(["dx", "dy", "dt", "speed", "touchId"], axis=1, inplace=True)
 
     # set the update position as the standard one
-    df_ball["xPos"] = np.where(df_ball["xPosNew"].notnull(), df_ball["xPosNew"], df_ball["xPos"])
-    df_ball["yPos"] = np.where(df_ball["yPosNew"].notnull(), df_ball["yPosNew"], df_ball["yPos"])
+    df_ball["xPos"] = np.where(
+        df_ball["xPosNew"].notnull(), df_ball["xPosNew"], df_ball["xPos"]
+    )
+    df_ball["yPos"] = np.where(
+        df_ball["yPosNew"].notnull(), df_ball["yPosNew"], df_ball["yPos"]
+    )
 
     # delete columns that are not needed anymore
-    df_ball.drop(["counterOut", "nbFramesOut", "xPosNew", "yPosNew"], axis=1, inplace=True)
+    df_ball.drop(
+        ["counterOut", "nbFramesOut", "xPosNew", "yPosNew"], axis=1, inplace=True
+    )
 
     return df_ball
 
@@ -317,8 +383,12 @@ def cleanse_tracking_data(game):
     logging.info(f"Cleansing metrica tracking data for game {game}")
 
     # read the raw data of the home and away team
-    df_home = io.read_data("home_team_tracking", league=str(game), data_folder="raw_data_metrica")
-    df_away = io.read_data("away_team_tracking", league=str(game), data_folder="raw_data_metrica")
+    df_home = io.read_data(
+        "home_team_tracking", league=str(game), data_folder="raw_data_metrica"
+    )
+    df_away = io.read_data(
+        "away_team_tracking", league=str(game), data_folder="raw_data_metrica"
+    )
 
     # extract the ball data and clean it to have less
     df_ball = extract_ball_data(df_home)
@@ -339,7 +409,9 @@ def cleanse_tracking_data(game):
     df_all.sort_values(["frame", "playerId"], inplace=True)
 
     df_all.drop(["outOfBounds", "ballOut"], axis=1, inplace=True)
-    df_all = pd.merge(df_all, df_ball[["frame", "outOfBounds", "ballOut"]], on="frame", how="left")
+    df_all = pd.merge(
+        df_all, df_ball[["frame", "outOfBounds", "ballOut"]], on="frame", how="left"
+    )
 
     # consider whether the ball is in play rather than whether it is out
     df_all.rename(columns={"ballOut": "ballInPlay"}, inplace=True)

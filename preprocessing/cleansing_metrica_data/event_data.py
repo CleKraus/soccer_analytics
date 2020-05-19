@@ -33,10 +33,14 @@ def set_positions(df_events, reverse, field_length=105, field_width=68):
             df_events[col] = 1 - df_events[col]
 
         # make sure that the teams play into the same direction in both half times
-        df_events[col] = np.where(df_events["period"] == 2, 1 - df_events[col], df_events[col])
+        df_events[col] = np.where(
+            df_events["period"] == 2, 1 - df_events[col], df_events[col]
+        )
 
         # make sure we always look at the field from each teams perspective
-        df_events[col] = np.where(df_events["team"] == "Away", 1 - df_events[col], df_events[col])
+        df_events[col] = np.where(
+            df_events["team"] == "Away", 1 - df_events[col], df_events[col]
+        )
 
     # get the position in meters
     df_events["xPosStart"] *= field_length
@@ -55,7 +59,9 @@ def add_player_positions(df):
     """
 
     # read the position for all players
-    df_positions = io.read_data("player_positions", sep=";", data_folder="raw_data_metrica")
+    df_positions = io.read_data(
+        "player_positions", sep=";", data_folder="raw_data_metrica"
+    )
 
     df = pd.merge(df, df_positions, on=["matchId", "playerId"])
     return df
@@ -67,7 +73,10 @@ def identify_pass(row):
     """
     if type(row["subEventName"]) == float:
         return row["eventName"]
-    elif row["eventName"] == "Ball lost" and "interception" in row["subEventName"].lower():
+    elif (
+        row["eventName"] == "Ball lost"
+        and "interception" in row["subEventName"].lower()
+    ):
         return "Pass"
     else:
         return row["eventName"]
@@ -84,7 +93,9 @@ def compute_wyscout_columns(df_events, game):
     # extract the playerId
     df_events["playerId"] = df_events["from"].map(lambda x: int(x[6:]))
     df_events["toPlayerId"] = np.nan
-    df_events.loc[df_events["to"].notnull(), "toPlayerId"] = df_events.loc[df_events["to"].notnull(), "to"].map(lambda x: int(x[6:]))
+    df_events.loc[df_events["to"].notnull(), "toPlayerId"] = df_events.loc[
+        df_events["to"].notnull(), "to"
+    ].map(lambda x: int(x[6:]))
 
     # set the teamId - home team is always 1, away team always 2
     df_events["teamId"] = np.where(df_events["team"] == "Home", 1, 2)
@@ -94,11 +105,13 @@ def compute_wyscout_columns(df_events, game):
     df_events["subEventName"] = df_events["subtype"].map(lambda x: x[0] + x[1:].lower())
 
     # add a columns indicating that a pass was accurate
-    df_events["accurate"] = 1*(df_events["eventName"] == "Pass")
+    df_events["accurate"] = 1 * (df_events["eventName"] == "Pass")
 
     # compute the event name
     df_events["eventName"] = df_events.apply(identify_pass, axis=1)
-    df_events["eventName"] = np.where(df_events["eventName"] == "Challenge", "Duel", df_events["eventName"])
+    df_events["eventName"] = np.where(
+        df_events["eventName"] == "Challenge", "Duel", df_events["eventName"]
+    )
 
     # bring the match period to the same format
     df_events["matchPeriod"] = df_events["period"].map(lambda x: str(x) + "H")
@@ -115,12 +128,22 @@ def compute_wyscout_columns(df_events, game):
     df_events["awayTeamId"] = 2
 
     # mark all passes that resulted from a set piece
-    df_set = df_events[df_events["eventName"] == "Set piece"][["startFrame", "eventName", "subEventName"]].copy()
+    df_set = df_events[df_events["eventName"] == "Set piece"][
+        ["startFrame", "eventName", "subEventName"]
+    ].copy()
     df_set.columns = ["startFrame", "eventNameSet", "subEventNameSet"]
 
     df_events = pd.merge(df_events, df_set, how="left", on="startFrame")
-    df_events["eventName"] = np.where(df_events["eventNameSet"].isnull(), df_events["eventName"], df_events["eventNameSet"])
-    df_events["subEventName"] = np.where(df_events["subEventNameSet"].isnull(), df_events["subEventName"], df_events["subEventNameSet"])
+    df_events["eventName"] = np.where(
+        df_events["eventNameSet"].isnull(),
+        df_events["eventName"],
+        df_events["eventNameSet"],
+    )
+    df_events["subEventName"] = np.where(
+        df_events["subEventNameSet"].isnull(),
+        df_events["subEventName"],
+        df_events["subEventNameSet"],
+    )
 
     return df_events
 
@@ -136,11 +159,27 @@ def cleanse_metrica_event_data(game, reverse):
 
     logging.info(f"Cleansing metrica event data for game {game}")
 
-    df_events = io.read_data("event_data", league=str(game), sep=",", data_folder="raw_data_metrica")
+    df_events = io.read_data(
+        "event_data", league=str(game), sep=",", data_folder="raw_data_metrica"
+    )
 
     # rename columns to camelStyle
-    df_events.columns = ["team", "type", "subtype", "period", "startFrame", "startTime", "endFrame", "endTime", "from",
-                         "to", "xPosStart", "yPosStart", "xPosEnd", "yPosEnd"]
+    df_events.columns = [
+        "team",
+        "type",
+        "subtype",
+        "period",
+        "startFrame",
+        "startTime",
+        "endFrame",
+        "endTime",
+        "from",
+        "to",
+        "xPosStart",
+        "yPosStart",
+        "xPosEnd",
+        "yPosEnd",
+    ]
 
     # make sure that the position is in meters and events are always from the perspective of the
     # team having the event
@@ -153,9 +192,16 @@ def cleanse_metrica_event_data(game, reverse):
     df_events["subtype"].fillna("  ", inplace=True)
 
     # identify goals and own goals
-    df_events["goal"] = 1 * (df_events.apply(lambda row: row["type"] == "SHOT" and "-GOAL" in row["subtype"], axis=1))
+    df_events["goal"] = 1 * (
+        df_events.apply(
+            lambda row: row["type"] == "SHOT" and "-GOAL" in row["subtype"], axis=1
+        )
+    )
     df_events["ownGoal"] = 1 * (
-        df_events.apply(lambda row: row["type"] == "BALL OUT" and "-GOAL" in row["subtype"], axis=1))
+        df_events.apply(
+            lambda row: row["type"] == "BALL OUT" and "-GOAL" in row["subtype"], axis=1
+        )
+    )
 
     df_events = compute_wyscout_columns(df_events, game)
 

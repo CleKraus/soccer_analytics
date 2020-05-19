@@ -21,9 +21,11 @@ def build_formation_data(game):
     df_track = io.read_tracking_data(game=game, clean=True)
 
     # get the first and last time the player was seen in the tracking data
-    df = df_track.groupby("playerId").agg(minTime=("time", "min"),
-                                          maxTime=("time", "max"),
-                                          team=("team", "min")).reset_index()
+    df = (
+        df_track.groupby("playerId")
+        .agg(minTime=("time", "min"), maxTime=("time", "max"), team=("team", "min"))
+        .reset_index()
+    )
 
     # convert seconds to minutes
     df["minuteStart"] = (df["minTime"] / 60).clip(lower=0).astype(int)
@@ -39,8 +41,17 @@ def build_formation_data(game):
     df["minutesPlayed"] = df["minuteEnd"] - df["minuteStart"]
 
     # make sure it is the same format as the wyscout data
-    cols = ["playerId", "lineup", "matchId", "teamId", "substituteIn",
-            "substituteOut", "minuteStart", "minuteEnd", "minutesPlayed"]
+    cols = [
+        "playerId",
+        "lineup",
+        "matchId",
+        "teamId",
+        "substituteIn",
+        "substituteOut",
+        "minuteStart",
+        "minuteEnd",
+        "minutesPlayed",
+    ]
 
     df = df[cols].copy()
 

@@ -836,7 +836,7 @@ def prepare_heatmap(
     return_df=False,
     length_field=105,
     width_field=68,
-    tracking_data=False
+    tracking_data=False,
 ):
     """
     Helper function to prepare a heatmap. It is most often used in combination with the function *create_heatmap*
@@ -862,7 +862,7 @@ def prepare_heatmap(
     df = df.copy()
 
     if tracking_data:
-        df[col_y] = -1*(df[col_y] - width_field / 2) + width_field / 2
+        df[col_y] = -1 * (df[col_y] - width_field / 2) + width_field / 2
 
     df[col_x + "Zone"], df_lookup_x_buckets = _calculate_bucket_for_position(
         df[col_x], nb_buckets_x, 0, length_field
@@ -920,7 +920,15 @@ def prepare_heatmap(
 
 
 def create_heatmap(
-    x, y, z, dict_info, title_name=None, colour_scale=None, zsmooth=False, legend_name=None, size=1
+    x,
+    y,
+    z,
+    dict_info,
+    title_name=None,
+    colour_scale=None,
+    zsmooth=False,
+    legend_name=None,
+    size=1,
 ):
     """
     Function to create a coloured heatmap on top of a soccer field
@@ -962,7 +970,9 @@ def create_heatmap(
         fig.add_trace(go.Heatmap(x=x, y=y, z=z, zsmooth=zsmooth, hoverinfo="none"))
     # if some information should be displayed
     else:
-        fig.add_trace(go.Heatmap(x=x, y=y, z=z, zsmooth=zsmooth, hoverinfo="text", text=hovertext))
+        fig.add_trace(
+            go.Heatmap(x=x, y=y, z=z, zsmooth=zsmooth, hoverinfo="text", text=hovertext)
+        )
 
     if colour_scale is not None:
         fig["data"][-1]["zmin"] = colour_scale[0]
@@ -1030,7 +1040,9 @@ def get_match_title(match_id, df_matches, df_teams, perspective="home"):
     return match_title
 
 
-def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=None, view_90_min=False):
+def prepare_passes_for_position_plot(
+    df_events, df_stats, show_top_k_percent=None, view_90_min=False
+):
     """
     Function to prepare the passes for the position plot (see *create_position_plot*). It does so by aggregating the
     accurate passes between any two players that appear in *df_stats*
@@ -1058,10 +1070,12 @@ def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=Non
     players = df_stats["playerId"].unique()
     df_passes = df_passes[
         df_passes["player1Id"].isin(players) & df_passes["player2Id"].isin(players)
-        ]
+    ]
 
     # get the centroid for each of the players
-    df_centroid = df_stats[["playerId", "centroidX", "centroidY", "minutesPlayed"]].copy()
+    df_centroid = df_stats[
+        ["playerId", "centroidX", "centroidY", "minutesPlayed"]
+    ].copy()
 
     # add the position of player 1
     df_pos_player1 = df_centroid.rename(
@@ -1069,7 +1083,7 @@ def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=Non
             "playerId": "player1Id",
             "centroidX": "centroidX1",
             "centroidY": "centroidY1",
-            "minutesPlayed": "minutesPlayed1"
+            "minutesPlayed": "minutesPlayed1",
         }
     )
     df_pass_share = pd.merge(df_passes, df_pos_player1, on="player1Id")
@@ -1080,14 +1094,17 @@ def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=Non
             "playerId": "player2Id",
             "centroidX": "centroidX2",
             "centroidY": "centroidY2",
-            "minutesPlayed": "minutesPlayed2"
+            "minutesPlayed": "minutesPlayed2",
         }
     )
     df_pass_share = pd.merge(df_pass_share, df_pos_player2, on="player2Id")
 
     if view_90_min:
-        df_pass_share["totalPasses"] = df_pass_share["totalPasses"] / df_pass_share[
-            ["minutesPlayed1", "minutesPlayed2"]].min(axis=1) * 90
+        df_pass_share["totalPasses"] = (
+            df_pass_share["totalPasses"]
+            / df_pass_share[["minutesPlayed1", "minutesPlayed2"]].min(axis=1)
+            * 90
+        )
 
     # compute the share of the passes for each player tuple
     df_pass_share["sharePasses"] = df_pass_share["totalPasses"] / sum(
@@ -1100,7 +1117,7 @@ def prepare_passes_for_position_plot(df_events, df_stats, show_top_k_percent=Non
         df_pass_share["cumShare"] = df_pass_share["sharePasses"].cumsum()
         df_pass_share = df_pass_share[
             df_pass_share["cumShare"] * 100 < show_top_k_percent
-            ].copy()
+        ].copy()
 
     return df_pass_share
 
@@ -1145,7 +1162,7 @@ def create_position_plot(
         "Minutes played": {"values": "minutesPlayed", "display_type": ".0f"},
         "Total distance": {"values": "totalDistance", "display_type": ".1f"},
         "Total distance/90": {"values": "totalDistance90", "display_type": ".1f"},
-        "Max speed (km/h)": {"values": "maxSpeed", "display_type": ".2f"}
+        "Max speed (km/h)": {"values": "maxSpeed", "display_type": ".2f"},
     }
 
     df_stats = df_stats.copy()

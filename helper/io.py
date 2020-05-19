@@ -322,9 +322,24 @@ def read_metrica_event_data(game, wyscout_format=True):
 
     # if event data should be returned in the metrica format
     if not wyscout_format:
-        cols = ['team', 'type', 'subtype', 'period', 'startFrame', 'startTime',
-                'endFrame', 'endTime', 'from', 'to', 'xPosStart', 'yPosStart',
-                'xPosEnd', 'yPosEnd', 'goal', 'ownGoal']
+        cols = [
+            "team",
+            "type",
+            "subtype",
+            "period",
+            "startFrame",
+            "startTime",
+            "endFrame",
+            "endTime",
+            "from",
+            "to",
+            "xPosStart",
+            "yPosStart",
+            "xPosEnd",
+            "yPosEnd",
+            "goal",
+            "ownGoal",
+        ]
         df_events = df_events[cols].copy()
 
         sub_event_col = "subtype"
@@ -335,25 +350,47 @@ def read_metrica_event_data(game, wyscout_format=True):
         warnings.warn(warn_message, category=ImportWarning)
 
         # rename some columns to match the wyscout format
-        cols_new = {"startTime": "eventSec",
-                    "endTime": "eventSecEnd",
-                    "from": "playerName",
-                    "to": "toPlayerName",
-                    "xPosStart": "posBeforeXMeters",
-                    "yPosStart": "posBeforeYMeters",
-                    "xPosEnd": "posAfterXMeters",
-                    "yPosEnd": "posAfterYMeters"
-                    }
+        cols_new = {
+            "startTime": "eventSec",
+            "endTime": "eventSecEnd",
+            "from": "playerName",
+            "to": "toPlayerName",
+            "xPosStart": "posBeforeXMeters",
+            "yPosStart": "posBeforeYMeters",
+            "xPosEnd": "posAfterXMeters",
+            "yPosEnd": "posAfterYMeters",
+        }
 
         df_events = df_events.rename(columns=cols_new)
 
         # only keep the relevant columns
-        cols = ["id", "matchId", "matchPeriod", "eventSec", "eventSecEnd", "startFrame", "endFrame", "eventName",
-                "subEventName",
-                "teamId", "team", "posBeforeXMeters", "posBeforeYMeters", "posAfterXMeters", "posAfterYMeters",
-                "playerId",
-                "playerName", "playerPosition", "toPlayerId", "toPlayerName", "homeTeamId", "awayTeamId", "accurate",
-                "goal", "ownGoal"]
+        cols = [
+            "id",
+            "matchId",
+            "matchPeriod",
+            "eventSec",
+            "eventSecEnd",
+            "startFrame",
+            "endFrame",
+            "eventName",
+            "subEventName",
+            "teamId",
+            "team",
+            "posBeforeXMeters",
+            "posBeforeYMeters",
+            "posAfterXMeters",
+            "posAfterYMeters",
+            "playerId",
+            "playerName",
+            "playerPosition",
+            "toPlayerId",
+            "toPlayerName",
+            "homeTeamId",
+            "awayTeamId",
+            "accurate",
+            "goal",
+            "ownGoal",
+        ]
         df_events = df_events[cols].copy()
 
         # do not keep two columns for the set pieces
@@ -369,9 +406,13 @@ def read_metrica_event_data(game, wyscout_format=True):
 
         sub_event_col = "subEventName"
 
-        df_formations = read_data("formation_data", league=str(game), data_folder="metrica_data")
+        df_formations = read_data(
+            "formation_data", league=str(game), data_folder="metrica_data"
+        )
 
-    df_events[sub_event_col] = np.where(df_events[sub_event_col] == "  ", np.nan, df_events[sub_event_col])
+    df_events[sub_event_col] = np.where(
+        df_events[sub_event_col] == "  ", np.nan, df_events[sub_event_col]
+    )
     df_events.sort_values(["startFrame", "endFrame"], inplace=True)
     df_events.reset_index(inplace=True, drop=True)
 
@@ -420,7 +461,7 @@ def read_raw_tracking_data(full_path, teamname):
     """
 
     # First:  deal with file headers so that we can get the player names correct
-    csvfile = open(full_path, 'r')
+    csvfile = open(full_path, "r")
 
     reader = csv.reader(csvfile)
 
@@ -430,14 +471,14 @@ def read_raw_tracking_data(full_path, teamname):
     ########################
 
     # extract player jersey numbers from second row
-    jerseys = [x for x in next(reader) if x != '']
+    jerseys = [x for x in next(reader) if x != ""]
     columns = next(reader)
 
     # create x & y position column headers for each player
     teamname = teamname[0].upper() + teamname[1:]
     for i, j in enumerate(jerseys):
-        columns[i*2+3] = "{}_{}_x".format(teamname, j)
-        columns[i*2+4] = "{}_{}_y".format(teamname, j)
+        columns[i * 2 + 3] = "{}_{}_x".format(teamname, j)
+        columns[i * 2 + 4] = "{}_{}_y".format(teamname, j)
 
     # column headers for the x & y positions of the ball
     columns[-2] = "ball_x"

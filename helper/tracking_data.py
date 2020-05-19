@@ -26,7 +26,9 @@ def add_position_delta(df):
     lst_all_players = list()
     for playerId in players:
         for period in periods:
-            df_player = df[(df["playerId"] == playerId) & (df["period"] == period)].copy()
+            df_player = df[
+                (df["playerId"] == playerId) & (df["period"] == period)
+            ].copy()
             df_player["dx"] = df_player["xPos"].diff()
             df_player["dy"] = df_player["yPos"].diff()
             df_player["dt"] = df_player["time"].diff()
@@ -46,9 +48,13 @@ def add_speed(df):
     """
     # in km/h
     if "dx" not in df.columns or "dy" not in df.columns or "dt" not in df.columns:
-        raise ValueError("Requires columns *dx*, *dy* and *dt*. Need to run function *add_position_delta* beforehand.")
+        raise ValueError(
+            "Requires columns *dx*, *dy* and *dt*. Need to run function *add_position_delta* beforehand."
+        )
 
-    df["speed"] = np.sqrt(df["dx"] * df["dx"] + df["dy"] * df["dy"]) / df["dt"] * 3600 / 1000
+    df["speed"] = (
+        np.sqrt(df["dx"] * df["dx"] + df["dy"] * df["dy"]) / df["dt"] * 3600 / 1000
+    )
     return df
 
 
@@ -59,11 +65,12 @@ def add_angle_of_direction(df):
     :return: pd.DataFrame with an additional *angle* column containing the angle
     """
     if "dx" not in df.columns or "dy" not in df.columns:
-        raise ValueError("Requires columns *dx* and *dy*. Need to run function *add_position_delta* beforehand.")
+        raise ValueError(
+            "Requires columns *dx* and *dy*. Need to run function *add_position_delta* beforehand."
+        )
 
     df["angle"] = df.apply(
-        lambda row: math.degrees(math.atan2(row["dy"], row["dx"])),
-        axis=1
+        lambda row: math.degrees(math.atan2(row["dy"], row["dx"])), axis=1
     )
     return df
 
@@ -89,7 +96,9 @@ def add_touch_id(df, min_angle_change=1):
     df["dAngle"] = df["angle"].diff()
 
     # flag all frames with an angle change of > *min_angle_change* degress
-    df["angleChange"] = 1 * ((np.abs(df["dAngle"]) > min_angle_change) | df["angle"].isnull())
+    df["angleChange"] = 1 * (
+        (np.abs(df["dAngle"]) > min_angle_change) | df["angle"].isnull()
+    )
 
     # fill in the touchId
     df["touchId"] = df["angleChange"].cumsum()
@@ -155,7 +164,9 @@ def compute_distance_to_point(df_players, df_point, point_coords, colname_out=No
     if colname_out is None:
         colname_out = "distToPoint"
 
-    df_point.rename(columns={point_coords[0]: "xxxPos", point_coords[1]: "yyyPos"}, inplace=True)
+    df_point.rename(
+        columns={point_coords[0]: "xxxPos", point_coords[1]: "yyyPos"}, inplace=True
+    )
     df = pd.merge(df, df_point[["frame", "xxxPos", "yyyPos"]], how="left", on="frame")
 
     df["dx"] = df["xPos"] - df["xxxPos"]
@@ -189,14 +200,19 @@ def closest_player_to_point(df_players, df_point, point_coords, colname_out=None
     df = compute_distance_to_point(df_players, df_point, point_coords)
 
     # for each frame get the player with the minimal distance
-    df_min_dist = df.groupby("frame").agg(minDistToPoint=("distToPoint", "min")).reset_index()
+    df_min_dist = (
+        df.groupby("frame").agg(minDistToPoint=("distToPoint", "min")).reset_index()
+    )
 
     df = pd.merge(df, df_min_dist, on="frame")
 
     df_player_min = df[df["distToPoint"] == df["minDistToPoint"]].copy()
 
-    df_player_min = df_player_min.groupby(["frame"])["playerId"]. \
-        agg(lambda x: ",".join([str(y) for y in sorted(x)])).reset_index()
+    df_player_min = (
+        df_player_min.groupby(["frame"])["playerId"]
+        .agg(lambda x: ",".join([str(y) for y in sorted(x)]))
+        .reset_index()
+    )
     df_player_min.columns = ["frame", colname_out]
 
     # attach the minimal distance and the player with the minimal distance
@@ -212,8 +228,16 @@ def transform_position_to_event_format(df, x_col, y_col):
     """
     df = df.copy()
 
-    df[x_col] = np.where(df["teamId"] == 1, df[x_col], -1 * (df[x_col] - FIELD_LENGTH / 2) + FIELD_LENGTH / 2)
-    df[y_col] = np.where(df["teamId"] == 1, -1 * (df[y_col] - FIELD_WIDTH / 2) + FIELD_WIDTH / 2, df[y_col])
+    df[x_col] = np.where(
+        df["teamId"] == 1,
+        df[x_col],
+        -1 * (df[x_col] - FIELD_LENGTH / 2) + FIELD_LENGTH / 2,
+    )
+    df[y_col] = np.where(
+        df["teamId"] == 1,
+        -1 * (df[y_col] - FIELD_WIDTH / 2) + FIELD_WIDTH / 2,
+        df[y_col],
+    )
 
     return df
 
@@ -241,7 +265,9 @@ def add_long_break_identifier(df_track, df_events, min_secs_long_break=20):
     # build a data frame containing all frames that are within any of the "long breaks"
     lst_break_frames = list()
     for i, row in df_break.iterrows():
-        df = pd.DataFrame({"frame": np.arange(row["startFrame"], row["startFrameAfter"])})
+        df = pd.DataFrame(
+            {"frame": np.arange(row["startFrame"], row["startFrameAfter"])}
+        )
         df["longBreak"] = 1
 
         lst_break_frames.append(df)
@@ -271,13 +297,17 @@ def compute_players_behind_ball(df_track):
     df_home_goal = df_track[["frame"]].drop_duplicates()
     df_home_goal["xPos"] = 0
     df_home_goal["yPos"] = FIELD_WIDTH / 2
-    df = compute_distance_to_point(df, df_home_goal, ("xPos", "yPos"), "distanceToHomeGoal")
+    df = compute_distance_to_point(
+        df, df_home_goal, ("xPos", "yPos"), "distanceToHomeGoal"
+    )
 
     # compute the distance to the away goal
     df_away_goal = df_home_goal.copy()
     df_away_goal["xPos"] = FIELD_LENGTH
     df_away_goal["yPos"] = FIELD_WIDTH / 2
-    df = compute_distance_to_point(df, df_away_goal, ("xPos", "yPos"), "distanceToAwayGoal")
+    df = compute_distance_to_point(
+        df, df_away_goal, ("xPos", "yPos"), "distanceToAwayGoal"
+    )
 
     # split the data into ball data and player data
     df_ball = df[df["playerId"] == -1].copy()
@@ -287,20 +317,26 @@ def compute_players_behind_ball(df_track):
     df_ball = df_ball[["frame", "distanceToHomeGoal", "distanceToAwayGoal"]].copy()
 
     df_ball.rename(
-        columns={"distanceToHomeGoal": "ballDistanceToHomeGoal",
-                 "distanceToAwayGoal": "ballDistanceToAwayGoal"},
-        inplace=True)
+        columns={
+            "distanceToHomeGoal": "ballDistanceToHomeGoal",
+            "distanceToAwayGoal": "ballDistanceToAwayGoal",
+        },
+        inplace=True,
+    )
     df_players = pd.merge(df_players, df_ball, how="left", on="frame")
 
-    df_players["potentialDefender"] = 1 * np.where(df_players["team"] == "Home",
-                                                   df_players["distanceToHomeGoal"] < df_players[
-                                                       "ballDistanceToHomeGoal"],
-                                                   df_players["distanceToAwayGoal"] < df_players[
-                                                       "ballDistanceToAwayGoal"])
+    df_players["potentialDefender"] = 1 * np.where(
+        df_players["team"] == "Home",
+        df_players["distanceToHomeGoal"] < df_players["ballDistanceToHomeGoal"],
+        df_players["distanceToAwayGoal"] < df_players["ballDistanceToAwayGoal"],
+    )
 
     # get the total number of players behind the ball
-    df_players_behind_ball = df_players.groupby(["frame", "team"]).agg(playersBehindBall=("potentialDefender", "sum")) \
+    df_players_behind_ball = (
+        df_players.groupby(["frame", "team"])
+        .agg(playersBehindBall=("potentialDefender", "sum"))
         .reset_index()
+    )
 
     df_players_behind_ball = pd.merge(df_players_behind_ball, df_ball, how="left")
     return df_players_behind_ball
@@ -317,19 +353,31 @@ def compute_packed_players_per_event(df_events, df_def):
     df_events["oppTeam"] = np.where(df_events["team"] == "Home", "Away", "Home")
 
     # compute the number of opponents behind the ball at begin of event
-    cols = {"team": "oppTeam",
-            "frame": "startFrame",
-            "playersBehindBall": "startPlayersBehindBall"}
-    df_events = pd.merge(df_events, df_def[cols.keys()].rename(columns=cols), on=["oppTeam", "startFrame"])
+    cols = {
+        "team": "oppTeam",
+        "frame": "startFrame",
+        "playersBehindBall": "startPlayersBehindBall",
+    }
+    df_events = pd.merge(
+        df_events,
+        df_def[cols.keys()].rename(columns=cols),
+        on=["oppTeam", "startFrame"],
+    )
 
     # compute the number of opponents behind the ball at end of event
-    cols = {"team": "oppTeam",
-            "frame": "endFrame",
-            "playersBehindBall": "endPlayersBehindBall"}
+    cols = {
+        "team": "oppTeam",
+        "frame": "endFrame",
+        "playersBehindBall": "endPlayersBehindBall",
+    }
 
-    df_events = pd.merge(df_events, df_def[cols.keys()].rename(columns=cols), on=["oppTeam", "endFrame"])
+    df_events = pd.merge(
+        df_events, df_def[cols.keys()].rename(columns=cols), on=["oppTeam", "endFrame"]
+    )
 
-    df_events["packedPlayers"] = (df_events["startPlayersBehindBall"] - df_events["endPlayersBehindBall"]).clip(lower=0)
+    df_events["packedPlayers"] = (
+        df_events["startPlayersBehindBall"] - df_events["endPlayersBehindBall"]
+    ).clip(lower=0)
     df_events.drop("oppTeam", axis=1, inplace=True)
 
     return df_events

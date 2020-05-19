@@ -238,10 +238,16 @@ def _compute_own_goals(df_events, group_col):
     Helper function to compute own goals in *df_events* per *group_col*
     """
     df_own_goals = df_events[df_events["ownGoal"] == 1].copy()
-    df_own_goals["teamId"] = np.where(df_own_goals["teamId"] == df_own_goals["homeTeamId"],
-                                      df_own_goals["awayTeamId"],
-                                      df_own_goals["homeTeamId"])
-    return df_own_goals.groupby(group_col).agg(totalOwnGoals=("ownGoal", "sum")).reset_index()
+    df_own_goals["teamId"] = np.where(
+        df_own_goals["teamId"] == df_own_goals["homeTeamId"],
+        df_own_goals["awayTeamId"],
+        df_own_goals["homeTeamId"],
+    )
+    return (
+        df_own_goals.groupby(group_col)
+        .agg(totalOwnGoals=("ownGoal", "sum"))
+        .reset_index()
+    )
 
 
 def _compute_total_duels(df_events, group_col):
@@ -329,7 +335,7 @@ def compute_statistics(
             "totalDuels",
             "centroid",
             "minutesPlayed",
-            "totalPasses90"
+            "totalPasses90",
         ]
 
     if drop_kpis is not None:
