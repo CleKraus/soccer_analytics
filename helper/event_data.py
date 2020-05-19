@@ -233,6 +233,17 @@ def _compute_total_goals(df_events, group_col):
     return df_shots.groupby(group_col).agg(totalGoals=("goal", "sum")).reset_index()
 
 
+def _compute_own_goals(df_events, group_col):
+    """
+    Helper function to compute own goals in *df_events* per *group_col*
+    """
+    df_own_goals = df_events[df_events["ownGoal"] == 1].copy()
+    df_own_goals["teamId"] = np.where(df_own_goals["teamId"] == df_own_goals["homeTeamId"],
+                                      df_own_goals["awayTeamId"],
+                                      df_own_goals["homeTeamId"])
+    return df_own_goals.groupby(group_col).agg(totalOwnGoals=("ownGoal", "sum")).reset_index()
+
+
 def _compute_total_duels(df_events, group_col):
     """
     Helper function to compute total duels in *df_events* per *group_col*
@@ -318,6 +329,7 @@ def compute_statistics(
             "totalDuels",
             "centroid",
             "minutesPlayed",
+            "totalPasses90"
         ]
 
     if drop_kpis is not None:
@@ -435,11 +447,21 @@ def compute_statistics(
         df_agg = pd.merge(df_agg, df_agg_var, how="left")
         df_agg["totalGoals"].fillna(0, inplace=True)
 
+        if "playerId" not in group_col:
+            df_agg_var = _compute_own_goals(df_events, group_col)
+            df_agg = pd.merge(df_agg, df_agg_var, how="left")
+            df_agg["totalOwnGoals"].fillna(0, inplace=True)
+            df_agg["totalGoals"] += df_agg["totalOwnGoals"]
+            df_agg.drop("totalOwnGoals", axis=1, inplace=True)
+
+        df_agg["totalGoals"] = df_agg["totalGoals"].astype(int)
+
     # compute total duels
     if "totalDuels" in keep_kpis:
         df_agg_var = _compute_total_duels(df_events, group_col)
         df_agg = pd.merge(df_agg, df_agg_var, how="left")
         df_agg["totalDuels"].fillna(0, inplace=True)
+        df_agg["totalDuels"] = df_agg["totalDuels"].astype(int)
 
     # only compute minutes played if df_formations is passed and we consider players rather than teams or matches
     if (
@@ -450,6 +472,10 @@ def compute_statistics(
 
         df_agg_var = _compute_minutes_played(df_events, group_col, df_formations)
         df_agg = pd.merge(df_agg, df_agg_var, how="left")
+
+    # compute the total number of passes per 90 minutes
+    if "totalPasses90" in keep_kpis and "minutesPlayed" in df_agg.columns:
+        df_agg["totalPasses90"] = df_agg["totalPasses"] / df_agg["minutesPlayed"] * 90
 
     # compute centroids
     if "centroid" in keep_kpis:
