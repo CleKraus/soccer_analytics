@@ -47,7 +47,7 @@ arise in real-life situations when using gradient boosters such as lightGBM or X
     - Extrapolation
 
 6. [Introduction to tracking data](notebooks/introduction_to_tracking_data.ipynb): In this notebook we are going to start looking into tracking data provided by Metrica sports. We learn 
-about the fundamentals on working with tracking data such as:
+about the fundamentals of working with tracking data such as:
     - Visualizing tracking data in animations
     - Computing basic statistics based on tracking data
     - Adding helper tools to highlight certain aspects in animations
@@ -89,4 +89,4 @@ Event data: [Wyscout](https://figshare.com/collections/Soccer_match_event_datase
 Tracking data: [Metrica](https://github.com/metrica-sports/sample-data)
 
 ### Code
-Great repositority to read in tracking data by Laurie Shaw [here](https://github.com/Friends-of-Tracking-Data-FoTD/LaurieOnTracking)
+Great repositority on how to read in tracking data by Laurie Shaw [here](https://github.com/Friends-of-Tracking-Data-FoTD/LaurieOnTracking)
