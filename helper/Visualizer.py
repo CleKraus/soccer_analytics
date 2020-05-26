@@ -113,20 +113,20 @@ class trackingDataVisualizer:
     """
 
     def __init__(
-        self,
-        df,
-        df_events,
-        size=1,
-        speed=1,
-        home_team_colour="red",
-        away_team_colour="blue",
-        ball_colour="white",
-        player_size=12,
-        ball_size=9,
-        team_front="Away",
-        show_player_numbers=False,
-        highlight_interruptions=True,
-        debug=False,
+            self,
+            df,
+            df_events,
+            size=1,
+            speed=1,
+            home_team_colour="red",
+            away_team_colour="blue",
+            ball_colour="white",
+            player_size=12,
+            ball_size=9,
+            team_front="Away",
+            show_player_numbers=False,
+            highlight_interruptions=True,
+            debug=False,
     ):
         """
         :param df: (pd.DataFrame) Data frame with tracking data of one match
@@ -171,6 +171,7 @@ class trackingDataVisualizer:
 
         # all potential data layers and whether they are used or not
         self.data_layers = {
+            "heatmap": 0,
             "convex_hull": 0,
             "packing": 0,
             "extreme_lines": 0,
@@ -209,8 +210,8 @@ class trackingDataVisualizer:
         # position of all the different players
         self.player_positions = (
             df_events.groupby(["playerId", "team"])
-            .agg(playerPosition=("playerPosition", "min"))
-            .reset_index()
+                .agg(playerPosition=("playerPosition", "min"))
+                .reset_index()
         )
 
         # players that have a connection line between them
@@ -230,6 +231,8 @@ class trackingDataVisualizer:
                 self.all_track_data, self.event_data
             )
 
+        self.heatmaps = []
+
     def _get_layer_index(self, layer_name):
         """
         Get the current layer index of *layer_name* for each frame
@@ -244,14 +247,14 @@ class trackingDataVisualizer:
             index += self.data_layers[layer]
 
     @staticmethod
-    def _create_empty_field_layout(size, speed):
+    def _create_empty_field_layout(size, speed, below=True, colour="green"):
         """
         Helper function to the get layout of the empty field by using the *create_empty_field* function from the
         plotly helper
         """
 
         # get an empty field using the plotly helper
-        field = py_help.create_empty_field(below=True, size=size)
+        field = py_help.create_empty_field(below=below, colour=colour, size=size)
 
         # save the field layout in a dict
         layout = dict(
@@ -298,7 +301,7 @@ class trackingDataVisualizer:
         return layout
 
     def _build_marker_dict(
-        self, df, marker_size, x_col="xPos", y_col="yPos", color_col="colour"
+            self, df, marker_size, x_col="xPos", y_col="yPos", color_col="colour"
     ):
         """
         Build the markers for the players and the ball
@@ -415,6 +418,19 @@ class trackingDataVisualizer:
         return convex_hull
 
     @staticmethod
+    def _build_heatmap_dict(x, y, z):
+        return {"type": "heatmap",
+                "x": x,
+                "y": y,
+                "z": z,
+                "opacity": 0.7,
+                "hoverinfo": "none",
+                "colorscale": [[0, "red"], [0.5, "white"], [1, "blue"]],
+                "showscale": False,
+                "zsmooth": "best"
+                }
+
+    @staticmethod
     def _build_time(time, millisecond=False):
         """
         Build a string that displays the time in mm:ss (and optional milliseconds) format
@@ -486,9 +502,9 @@ class trackingDataVisualizer:
         # compute the extreme position for each frame
         df_extreme_pos = (
             df[(df["team"] == team) & (df["playerId"] != -1)]
-            .groupby("frame")
-            .agg(extremePosition=("xPos", agg))
-            .reset_index()
+                .groupby("frame")
+                .agg(extremePosition=("xPos", agg))
+                .reset_index()
         )
         df_extreme_pos.columns = ["frame", f"xxx{min_max}Position{team}xxx"]
         df = pd.merge(df_out, df_extreme_pos)
@@ -528,11 +544,11 @@ class trackingDataVisualizer:
                 self.player_positions[
                     (self.player_positions["playerPosition"].isin(positions))
                     & (self.player_positions["team"] == team)
-                ]["playerId"]
+                    ]["playerId"]
             )
 
     def add_team_convex_hull(
-        self, team, exclude_positions=["GK"], exclude_players=[], lst_hulls=None
+            self, team, exclude_positions=["GK"], exclude_players=[], lst_hulls=None
     ):
         """
         Compute the convex hull around all players of *team* excluding the ones specified in *exclude_positions* or
@@ -586,7 +602,7 @@ class trackingDataVisualizer:
                 (df_players["frame"] == i)
                 & (df_players["team"] == team)
                 & ~(df_players["playerId"].isin(exclude_players))
-            ]
+                ]
 
             if lst_hulls is not None:
                 convex_hull = self._build_convex_hull_dict(tmp_player, lst_hulls[k])
@@ -626,6 +642,7 @@ class trackingDataVisualizer:
         df_ball = self.seq_data[self.seq_data["playerId"] == -1].copy()
 
         # identify whether convex hull, packing, extreme lines or lines between players should be drawn
+        draw_heatmap = self.data_layers["heatmap"] > 0
         draw_convex_hull = self.data_layers["convex_hull"] > 0
         draw_packing = self.data_layers["packing"] > 0
         draw_ext_lines = self.data_layers["extreme_lines"] > 0
@@ -650,6 +667,11 @@ class trackingDataVisualizer:
 
             # initialize the list to store all layers
             data = []
+
+            if draw_heatmap:
+                heatmap = self.heatmaps[k]
+                dict_heat = self._build_heatmap_dict(heatmap["x"], heatmap["y"], heatmap["z"])
+                data.append(dict_heat)
 
             # add the convex hull between the players
             if draw_convex_hull:
@@ -771,7 +793,7 @@ class trackingDataVisualizer:
         df = self.all_track_data[
             (self.all_track_data["frame"] >= self.frame_start)
             & (self.all_track_data["frame"] <= self.frame_end)
-        ].copy()
+            ].copy()
 
         # sort the values depending on which team is in front
         df.sort_values(
@@ -1051,8 +1073,8 @@ class trackingDataVisualizer:
             # build a list with the player positions for each frame
             df_agg = (
                 df_players.groupby("frame")["position"]
-                .agg(lambda x: list(x))
-                .reset_index()
+                    .agg(lambda x: list(x))
+                    .reset_index()
             )
 
             # add the list of positions to the sequence data
@@ -1147,7 +1169,7 @@ class trackingDataVisualizer:
             )
 
     def add_hovertext(
-        self, label_info, df=None, on_players=True, on_ball=False, lazy=True
+            self, label_info, df=None, on_players=True, on_ball=False, lazy=True
     ):
         """
         Add hovertext to the frames
@@ -1461,13 +1483,16 @@ class trackingDataVisualizer:
         for i, row in df.iterrows():
 
             if (
-                self.highlighted_players is not None
-                and row["playerId"] in self.highlighted_players
+                    self.highlighted_players is not None
+                    and row["playerId"] in self.highlighted_players
             ):
                 ix = self.highlighted_players.index(row["playerId"])
                 colour = self.highlighted_colours[ix]
             else:
                 colour = row["colour"]
+
+            if row["dx"] < 0.05 and row["dy"] < 0.05:
+                continue
 
             fig.add_annotation(
                 ax=row["xPos"],
@@ -1509,3 +1534,46 @@ class trackingDataVisualizer:
                 data=self.frames[0]["data"], layout=self.layout, frames=self.frames
             )
         return fig
+
+    def add_heatmap(self, x, y, z, lazy=True):
+
+        if len(x) != len(y) or len(y) != len(z):
+            raise ValueError("Length of x, y and z need to be identical")
+
+        if self.lazy_change:
+            self._set_frames()
+            self.lazy_change = False
+
+        if len(x) != len(self.frames):
+            raise ValueError("Number of heatmaps and frames needs to be identical")
+
+        if self.data_layers["heatmap"] == 1:
+            self.remove_heatmap(lazy=True)
+
+        self.layout = self._create_empty_field_layout(self.plot_size, self.speed, colour="white", below=True)
+
+        for i in np.arange(len(x)):
+            dict_heatmap = {"x": x[i],
+                            "y": y[i],
+                            "z": z[i]}
+            self.heatmaps.append(dict_heatmap)
+
+        self.data_layers["heatmap"] = 1
+
+        if not lazy:
+            self._set_frames()
+        else:
+            self.lazy_change = True
+
+    def remove_heatmap(self, lazy=True):
+
+        self.data_layers["heatmap"] = 0
+        self.heatmaps = []
+
+        self.layout = self._create_empty_field_layout(self.plot_size, self.speed, colour="green")
+
+        if not lazy:
+            self._set_frames()
+        else:
+            self.lazy_change = True
+
