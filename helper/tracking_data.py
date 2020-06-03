@@ -89,15 +89,25 @@ def add_player_velocities(df_track, smoothing=True, window=7, polyorder=1, maxsp
 
         # do not clean the ball speed
         if tmp_player != -1:
-            df_player["rawSpeed"] = np.sqrt(df_player["vx"] * df_player["vx"] + df_player["vy"] * df_player["vy"])
+            df_player["rawSpeed"] = np.sqrt(
+                df_player["vx"] * df_player["vx"] + df_player["vy"] * df_player["vy"]
+            )
 
             # if raw speed is faster than *maxspeed* we assume a data error
-            df_player["vx"] = np.where(df_player["rawSpeed"] > maxspeed, np.nan, df_player["vx"])
-            df_player["vy"] = np.where(df_player["rawSpeed"] > maxspeed, np.nan, df_player["vy"])
+            df_player["vx"] = np.where(
+                df_player["rawSpeed"] > maxspeed, np.nan, df_player["vx"]
+            )
+            df_player["vy"] = np.where(
+                df_player["rawSpeed"] > maxspeed, np.nan, df_player["vy"]
+            )
 
             # use Savatzky-Golay filter for fitting
-            vx_sav = signal.savgol_filter(df_player["vx"], window_length=window, polyorder=polyorder)
-            vy_sav = signal.savgol_filter(df_player["vy"], window_length=window, polyorder=polyorder)
+            vx_sav = signal.savgol_filter(
+                df_player["vx"], window_length=window, polyorder=polyorder
+            )
+            vy_sav = signal.savgol_filter(
+                df_player["vy"], window_length=window, polyorder=polyorder
+            )
 
             df_player["vx"] = vx_sav
             df_player["vy"] = vy_sav

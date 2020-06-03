@@ -1,4 +1,3 @@
-
 import math
 import copy
 import numpy as np
@@ -6,7 +5,6 @@ import pandas as pd
 
 
 class Player(object):
-
     def __init__(self, row):
 
         # time between two frames
@@ -55,13 +53,13 @@ class Player(object):
 
         # center position after *t* frames
         center = (
-                self.position
-                + (1 - math.exp(-self.alpha * t * self.dt)) / self.alpha * self.velocity
+            self.position
+            + (1 - math.exp(-self.alpha * t * self.dt)) / self.alpha * self.velocity
         )
 
         # radius after *t* frames
         radius = self.V_max * (
-                t * self.dt - (1 - math.exp(-self.alpha * t * self.dt)) / self.alpha
+            t * self.dt - (1 - math.exp(-self.alpha * t * self.dt)) / self.alpha
         )
 
         return center, radius
@@ -83,7 +81,7 @@ class Player(object):
         # to be reachable
         if len(ball_pos) == 3:
             reach = (np.linalg.norm(center - ball_pos[:2]) < radius) and (
-                    ball_pos[2] < self.player_height
+                ball_pos[2] < self.player_height
             )
 
         # if the player is potentially able to reach the ball
@@ -93,7 +91,12 @@ class Player(object):
                 self.t_int = t
 
             # compute the probability to intercept
-            P_int = 1 / (1.0 + np.exp(-np.pi / np.sqrt(3.0) / self.sigma * (t - self.t_int) * self.dt))
+            P_int = 1 / (
+                1.0
+                + np.exp(
+                    -np.pi / np.sqrt(3.0) / self.sigma * (t - self.t_int) * self.dt
+                )
+            )
 
         # if the player is definitely not able to reach the ball
         else:
@@ -219,7 +222,7 @@ class PassProbabilityModeler:
                 )
 
                 # every pass is assumed to start on the ground
-                tmp_r = np.array(list(tmp_r) + [0.])
+                tmp_r = np.array(list(tmp_r) + [0.0])
 
         # in case of a ground pass
         if type(angle) == float or type(angle) == int:
@@ -409,9 +412,9 @@ class PassProbabilityModeler:
                 # compute the player's passing interception probability within *t* frames
                 P_int = player.interception_probability(t, ball_pos)
                 dPdT = (
-                        (1 - pass_prob_att[t - 1] - pass_prob_def[t - 1])
-                        * P_int
-                        * self.lambda_player
+                    (1 - pass_prob_att[t - 1] - pass_prob_def[t - 1])
+                    * P_int
+                    * self.lambda_player
                 )
 
                 player.PIP += dPdT * self.dt
@@ -423,9 +426,9 @@ class PassProbabilityModeler:
             for player in self.defending_players:
                 P_int = player.interception_probability(t, ball_pos)
                 dPdT = (
-                        (1 - pass_prob_att[t - 1] - pass_prob_def[t - 1])
-                        * P_int
-                        * self.lambda_player
+                    (1 - pass_prob_att[t - 1] - pass_prob_def[t - 1])
+                    * P_int
+                    * self.lambda_player
                 )
                 player.PIP += dPdT * self.dt
                 pass_prob_def[t] += player.PIP
@@ -433,10 +436,10 @@ class PassProbabilityModeler:
             # check whether the ball is still in play. If not, the defending team gets all the
             # remaining probability
             if (
-                    (ball_pos[0] > 105)
-                    or (ball_pos[0] < 0)
-                    or (ball_pos[1] > 68)
-                    or (ball_pos[1] < 0)
+                (ball_pos[0] > 105)
+                or (ball_pos[0] < 0)
+                or (ball_pos[1] > 68)
+                or (ball_pos[1] < 0)
             ):
                 ball_in_play = False
                 pass_prob_def[t] = 1 - pass_prob_att[t - 1]
