@@ -2,7 +2,7 @@ general:
   # do not change project name
   project_name: soccer_analytics
   # project_path will be automatically set
-  project_path: C:\Clemens\Learning\soccer_analytics
+  project_path: /home/u653/soccer_analytics
   # do not change field length and width at the moment - functionality not fully implemented
   field_length: 105
   field_width: 68
@@ -20,6 +20,7 @@ metrica_data:
   event_data: event_data_game_xxxxx.parquet
   tracking_data: tracking_data_game_xxxxx.parquet
   formation_data: formations_game_xxxxx.parquet
+  ground_pass_probs: ground_pass_probabilities.parquet
 
 model:
   path: data/models

@@ -489,13 +489,38 @@ def read_raw_tracking_data(full_path, teamname):
     return tracking
 
 
+def read_ground_pass_probs(accurate=None, air=None):
+    """
+    Helper function to read the probabilities for passes being passes played on the ground. This is used in the
+    notebook "pass_probability_model.ipynb" to not have to recompute all probabilities.
+    """
+
+    df_pass = read_data("ground_pass_probs", data_folder="metrica_data")
+
+    if accurate is not None:
+        if accurate:
+            df_pass = df_pass[df_pass["accurate"] == 1].copy()
+        else:
+            df_pass = df_pass[df_pass["accurate"] == 0].copy()
+
+    if air is not None:
+        if air:
+            cols = ["id", "startFrame", "bestSpeedAir", "bestAngleAir", "probAir"]
+        else:
+            cols = ["id", "startFrame", "bestSpeedGround", "probGround"]
+
+        df_pass = df_pass[cols].copy()
+
+    return df_pass
+
+
 def write_data(df, data_type, league=None, data_folder=None):
     """
     Function to save *df* in the path specified in the config file under "data" (or *data_folder* if specified)
     :param df: (pd.DataFrame) Data frame to write as parquet file
     :param data_type: (str) Type of data (event, match, player, ...) to be written. Needs to exactly match the name in
                       the config file
-    :param league: (str) League to be read in case there are different files (e.g. Germany, Englang, ...)
+    :param league: (str) League to be read in case there are different files (e.g. Germany, England, ...)
     :param data_folder: (str) In case any other data folder than "data" from the config file is required, it should be
                         specified here
     :return: None

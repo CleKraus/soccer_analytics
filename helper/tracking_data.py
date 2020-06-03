@@ -5,6 +5,7 @@
 import math
 import pandas as pd
 import numpy as np
+import scipy.signal as signal
 
 FIELD_LENGTH = 105
 FIELD_WIDTH = 68
@@ -46,6 +47,9 @@ def add_speed(df):
     :param df: (pd.DataFrame) Tracking data containing the position and time deltas
     :return: pd.DataFrame with tracking data containing the speed for each frame
     """
+
+    print("Do not use this any more but consider using *add_player_velocities*")
+
     # in km/h
     if "dx" not in df.columns or "dy" not in df.columns or "dt" not in df.columns:
         raise ValueError(
@@ -56,6 +60,56 @@ def add_speed(df):
         np.sqrt(df["dx"] * df["dx"] + df["dy"] * df["dy"]) / df["dt"] * 3600 / 1000
     )
     return df
+
+
+def add_player_velocities(df_track, smoothing=True, window=7, polyorder=1, maxspeed=10):
+    """
+    :param df_track: (pd.DataFrame) Tracking data
+    :param smoothing: (bool) If True, Savatzky-Golay filter is used for smoothing
+    :param window: (int) Window used for Savatzky-Golay filter
+    :param polyorder: (int) Order of polynom used for Savatzky-Golay filter
+    :param maxspeed: (float) Maximum player speed assumed (in m/s)
+    :return: pd.DataFrame with tracking data containing player's (smoothed) speed in m/s for each frame
+    """
+
+    # compute the raw speed in x- and y-direction
+    df_track = add_position_delta(df_track)
+    df_track["vx"] = df_track["dx"] / df_track["dt"]
+    df_track["vy"] = df_track["dy"] / df_track["dt"]
+
+    # if no smoothing is required we just return the raw speed
+    if not smoothing:
+        return df_track
+
+    lst_all_players = list()
+
+    for tmp_player in df_track["playerId"].unique():
+
+        df_player = df_track[df_track["playerId"] == tmp_player].copy()
+
+        # do not clean the ball speed
+        if tmp_player != -1:
+            df_player["rawSpeed"] = np.sqrt(df_player["vx"] * df_player["vx"] + df_player["vy"] * df_player["vy"])
+
+            # if raw speed is faster than *maxspeed* we assume a data error
+            df_player["vx"] = np.where(df_player["rawSpeed"] > maxspeed, np.nan, df_player["vx"])
+            df_player["vy"] = np.where(df_player["rawSpeed"] > maxspeed, np.nan, df_player["vy"])
+
+            # use Savatzky-Golay filter for fitting
+            vx_sav = signal.savgol_filter(df_player["vx"], window_length=window, polyorder=polyorder)
+            vy_sav = signal.savgol_filter(df_player["vy"], window_length=window, polyorder=polyorder)
+
+            df_player["vx"] = vx_sav
+            df_player["vy"] = vy_sav
+
+        lst_all_players.append(df_player)
+
+    df_all_players = pd.concat(lst_all_players)
+    df_all_players["vx"].fillna(0, inplace=True)
+    df_all_players["vy"].fillna(0, inplace=True)
+    df_all_players.drop(["dx", "dy", "dt", "rawSpeed"], axis=1, inplace=True)
+
+    return df_all_players
 
 
 def add_angle_of_direction(df):

@@ -53,6 +53,11 @@ about the fundamentals of working with tracking data such as:
     - Adding helper tools to highlight certain aspects in animations
     - Deep-dive into *packing*
 
+7. [Passing probability model]: In this notebook we look at a pass probability model as proposed by Peralta et al. and Spearman et al. (see papers below) and use it for a first use case.
+More precisely this notebook includes:
+    - Deep dive into the passing probability model
+    - Usage of the model to distinguish ground passes from air passes
+    - Some statistics on ground passes vs. air passes
 
 ## Examples
 
@@ -89,4 +94,10 @@ Event data: [Wyscout](https://figshare.com/collections/Soccer_match_event_datase
 Tracking data: [Metrica](https://github.com/metrica-sports/sample-data)
 
 ### Code
-Great repositority on how to read in tracking data by Laurie Shaw [here](https://github.com/Friends-of-Tracking-Data-FoTD/LaurieOnTracking)
+Great repositority on pitch control and pitch impact by Laurie Shaw [here](https://github.com/Friends-of-Tracking-Data-FoTD/LaurieOnTracking)
+
+### Paper
+*Physics-Based Modeling of Pass Probabilities in Soccer* by Spearman et al. [here](http://www.sloansportsconference.com/wp-content/uploads/2017/02/1621.pdf)
+
+*Seeing in to the future: using self-propelled particle models to aid player decision-making in soccer* by 
+Peralta et al. [here](http://www.sloansportsconference.com/wp-content/uploads/2020/02/SLOAN-Peralta-Final-submission.pdf)
