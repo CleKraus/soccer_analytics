@@ -5,7 +5,7 @@ name: Testing
 
 on:
   push:
-    branches: [ master, dev ]
+    branches: [ master, dev, pass_prob_model]
   pull_request:
     branches: [ master ]
 

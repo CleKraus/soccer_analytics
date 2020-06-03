@@ -8,7 +8,6 @@ dashboard/
 # data #
 ########
 data/raw_data/kaggle_data
-data/raw_data/metrica_data
 data/raw_data/wyscout_data/events
 data/raw_data/wyscout_data/matches
 data/raw_data/wyscout_data/players.json

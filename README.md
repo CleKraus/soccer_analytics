@@ -53,11 +53,10 @@ about the fundamentals of working with tracking data such as:
     - Adding helper tools to highlight certain aspects in animations
     - Deep-dive into *packing*
 
-7. [Passing probability model]: In this notebook we look at a pass probability model as proposed by Peralta et al. and Spearman et al. (see papers below) and use it for a first use case.
+7. [Passing probability model](notebooks/passing_probability_model.ipynb): In this notebook we look at a pass probability model as proposed by Peralta et al. and Spearman et al. (see papers below) and use it for a first use case.
 More precisely this notebook includes:
-    - Deep dive into the passing probability model
-    - Usage of the model to distinguish ground passes from air passes
-    - Some statistics on ground passes vs. air passes
+    - Deep dive into the passing probability model to get a feeling on how the model works
+    - Usage of the pass probability model to try to distinguish ground passes from air passes
 
 ## Examples
 
