@@ -59,3 +59,7 @@ jobs:
     - name: Test notebook introduction to tracking data
       run: |
         py.test --nbval-lax notebooks/introduction_to_tracking_data.ipynb
+
+    - name: Test notebook passing probability model
+      run: |
+        py.test --nbval-lax notebooks/passing_probability_model.ipynb
